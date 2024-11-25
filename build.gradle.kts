@@ -16,11 +16,14 @@ java {
 }
 
 sonarqube {
+    val sonarProjectKey = System.getenv("SONAR_PROJECT_KEY") ?: ""
+    val sonarHostUrl = System.getenv("SONAR_HOST_URL") ?: ""
+    val sonarToken = System.getenv("SONAR_TOKEN") ?: ""
     properties {
-        property("sonar.projectKey", "ArgosFileManager")
-        property("sonar.projectName", "ArgosFileManager")
-        property("sonar.host.url", "http://argos.japaneast.cloudapp.azure.com")
-        property("sonar.login", "sqp_1517297557c16ddb854679b9a0769963daaa4f5b")
+        property("sonar.projectKey", sonarProjectKey)
+        property("sonar.host.url", sonarHostUrl)
+        property("sonar.token", sonarToken)
+        property("sonar.qualitygate.wait", "true")
     }
 }
 
