@@ -1,5 +1,5 @@
 plugins {
-    java
+    application
     id("org.springframework.boot") version "3.4.0"
     id("io.spring.dependency-management") version "1.1.6"
     id("org.sonarqube") version "5.1.0.4882"
@@ -35,6 +35,10 @@ configurations {
 
 repositories {
     mavenCentral()
+}
+
+application {
+    mainClass.set("org.argos.file.manager.ArgosFileManagerApplication")
 }
 
 dependencies {
