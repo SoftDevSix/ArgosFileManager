@@ -1,0 +1,6 @@
+projectKey=ArgosFileManager
+serverUrl=http://argos.japaneast.cloudapp.azure.com
+serverVersion=10.7.0.96327
+dashboardUrl=http://argos.japaneast.cloudapp.azure.com/dashboard?id=ArgosFileManager
+ceTaskId=a1dd6b6d-6a10-4930-853b-ce7b4a2f9250
+ceTaskUrl=http://argos.japaneast.cloudapp.azure.com/api/ce/task?id=a1dd6b6d-6a10-4930-853b-ce7b4a2f9250
