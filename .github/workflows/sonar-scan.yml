@@ -1,4 +1,4 @@
-name: Sonarqube pipeline
+name: SonarQube_Scan
 
 on:
   pull_request:
@@ -6,8 +6,8 @@ on:
       - 'develop'
 
 jobs:
-  static-analisis:
-    name: build and sonarqube analyze
+  static-analysis:
+    name: Build and Sonarqube Analyze
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
