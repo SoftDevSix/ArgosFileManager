@@ -9,5 +9,4 @@ public class ArgosFileManagerApplication {
     public static void main(String[] args) {
         SpringApplication.run(ArgosFileManagerApplication.class, args);
     }
-
 }

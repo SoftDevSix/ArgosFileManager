@@ -1,0 +1,24 @@
+[versions]
+springbootversions = "3.3.4"
+dependencyManagement = "1.1.6"
+shadow = "8.1.1"
+spotless = "6.25.0"
+sonarqube = "5.1.0.4882"
+logback = "1.5.12"
+lombok = "1.18.36"
+junit-jupiter = "5.10.3"
+
+[plugins]
+springboot = { id = "org.springframework.boot", version.ref = "springbootversions" }
+dependency-management = { id = "io.spring.dependency-management", version.ref = "dependencyManagement" }
+shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
+lombok = { id = "io.freefair.lombok", version = "8.11" }
+
+[libraries]
+springboot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springbootversions" }
+springboot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
+springboot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }

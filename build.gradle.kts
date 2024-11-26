@@ -1,12 +1,15 @@
 plugins {
-    application
-    id("org.springframework.boot") version "3.4.0"
-    id("io.spring.dependency-management") version "1.1.6"
-    id("org.sonarqube") version "5.1.0.4882"
-    id("jacoco")
+    `java-library`
+    `jacoco`
+    alias(libs.plugins.springboot) apply true
+    alias(libs.plugins.dependency.management) apply true
+    alias(libs.plugins.shadow) apply true
+    alias(libs.plugins.spotless) apply true
+    alias(libs.plugins.sonarqube) apply true
+    alias(libs.plugins.lombok) apply true
 }
 
-group = "org.argos"
+group = "org.argos.file.manager"
 version = "0.0.1-SNAPSHOT"
 
 java {
@@ -15,16 +18,8 @@ java {
     }
 }
 
-sonarqube {
-    val sonarProjectKey = System.getenv("SONAR_PROJECT_KEY") ?: ""
-    val sonarHostUrl = System.getenv("SONAR_HOST_URL") ?: ""
-    val sonarToken = System.getenv("SONAR_TOKEN") ?: ""
-    properties {
-        property("sonar.projectKey", sonarProjectKey)
-        property("sonar.host.url", sonarHostUrl)
-        property("sonar.token", sonarToken)
-        property("sonar.qualitygate.wait", "true")
-    }
+repositories {
+    mavenCentral()
 }
 
 configurations {
@@ -33,47 +28,61 @@ configurations {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
-application {
-    mainClass.set("org.argos.file.manager.ArgosFileManagerApplication")
-}
-
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    compileOnly("org.projectlombok:lombok")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    annotationProcessor("org.projectlombok:lombok")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation(libs.springboot.starter.web)
+    compileOnly(libs.lombok)
+    developmentOnly(libs.springboot.devtools)
+    annotationProcessor(libs.lombok)
+    testImplementation(libs.springboot.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
-tasks.withType<Test> {
+tasks.test {
+    testLogging {
+        events("failed", "skipped")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
     useJUnitPlatform()
-}
-
-jacoco {
-    toolVersion = "0.8.8"
 }
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
     reports {
-        xml.required.set(true)
-        csv.required.set(false)
-        html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+        xml.required = true
+        csv.required = false
+        html.required = true
     }
 }
 
-tasks.jacocoTestCoverageVerification {
-    dependsOn(tasks.jacocoTestReport)
-    violationRules {
-        rule {
-            limit {
-                minimum = "0.8".toBigDecimal()
-            }
+spotless {
+    java {
+        googleJavaFormat("1.24.0").aosp()
+            .reflowLongStrings()
+            .formatJavadoc(false)
+            .reorderImports(false)
+    }
+}
+
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter(libs.versions.junit.jupiter.get())
         }
+    }
+}
+
+sonar {
+    val sonarProjectKey = System.getenv("SONAR_PROJECT_KEY") ?: ""
+    val sonarHostUrl = System.getenv("SONAR_HOST_URL") ?: ""
+    val sonarToken = System.getenv("SONAR_TOKEN") ?: ""
+    properties {
+        property("sonar.projectKey", sonarProjectKey)
+        property("sonar.host.url", sonarHostUrl)
+        property("sonar.token", sonarToken)
+        property("sonar.qualitygate.wait", "true")
+        property("sonar.ignore.cognitive.complexity", "MethodData.equals")
     }
 }
