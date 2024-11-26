@@ -1,5 +1,5 @@
 plugins {
-    `java-library`
+    `application`
     `jacoco`
     alias(libs.plugins.springboot) apply true
     alias(libs.plugins.dependency.management) apply true
@@ -12,6 +12,20 @@ plugins {
 group = "org.argos.file.manager"
 version = "0.0.1-SNAPSHOT"
 
+application {
+    mainClass.set("org.argos.file.manager.ArgosFileManagerApplication")
+}
+
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.jacocoTestReport)
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.85".toBigDecimal()
+            }
+        }
+    }
+}
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
@@ -83,6 +97,5 @@ sonar {
         property("sonar.host.url", sonarHostUrl)
         property("sonar.token", sonarToken)
         property("sonar.qualitygate.wait", "true")
-        property("sonar.ignore.cognitive.complexity", "MethodData.equals")
     }
 }
