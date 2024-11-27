@@ -12,7 +12,12 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-
+/**
+ * Unit tests for the {@link S3Repository}.
+ *
+ * This class tests the repository methods related to interacting with AWS S3,
+ * including listing files in the bucket.
+ */
 class S3RepositoryTest {
 
     @Mock
@@ -20,12 +25,21 @@ class S3RepositoryTest {
 
     private S3Repository s3Repository;
 
+    /**
+     * Initializes the mock dependencies and the repository instance before each test.
+     */
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         s3Repository = new S3Repository(s3Client);
     }
 
+    /**
+     * Tests the method for listing files when the S3 bucket is empty.
+     *
+     * This test mocks the response from S3 to return an empty list of objects,
+     * and ensures that the repository returns an empty list.
+     */
     @Test
     void testListFiles_EmptyBucket() {
         ListObjectsV2Response response = ListObjectsV2Response.builder()
@@ -37,6 +51,12 @@ class S3RepositoryTest {
         assertTrue(files.isEmpty());
     }
 
+    /**
+     * Tests the method for listing files when there are files in the S3 bucket.
+     *
+     * This test mocks the response from S3 to return a list of files, and ensures
+     * that the repository returns the correct list of file names.
+     */
     @Test
     void testListFiles_WithFiles() {
         S3Object file1 = S3Object.builder().key("file1.txt").build();
