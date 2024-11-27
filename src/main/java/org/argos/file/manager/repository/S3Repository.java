@@ -60,7 +60,7 @@ public class S3Repository implements IStorageRepository {
             List<Path> files = stream.filter(Files::isRegularFile).toList();
 
             if (files.isEmpty()) {
-                throw new NotFoundError("No files found in the directory to upload.");
+                throw new BadRequestError("No files found in the directory to upload.");
             }
 
             for (Path file : files) {

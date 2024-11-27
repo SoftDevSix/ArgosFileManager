@@ -204,6 +204,9 @@ class S3RepositoryTest {
         verify(s3Client, times(1)).getObject(any(GetObjectRequest.class));
     }
 
+    /**
+     * Test to receive Bad Request Exception Response
+     */
     @Test
     void testGetFileContent_EmptyProjectId_ThrowsBadRequestError() {
         String filePath = "test-file.txt";
@@ -214,6 +217,9 @@ class S3RepositoryTest {
         assertEquals("Project ID and file path cannot be null or empty.", exception.getMessage());
     }
 
+    /**
+     * Test to receive Bad Request Exception Response with an epmty file path
+     */
     @Test
     void testGetFileContent_EmptyFilePath_ThrowsBadRequestError() {
         String projectId = "test-project-id";
@@ -225,6 +231,9 @@ class S3RepositoryTest {
     }
 
 
+    /**
+     * Test to receive An error file reading type
+     */
     @Test
     void testGetFileContent_ThrowsIOException() throws Exception {
         String projectId = "test-project-id";
@@ -240,6 +249,4 @@ class S3RepositoryTest {
         );
         assertTrue(exception.getMessage().contains("Error reading file content"));
     }
-
-
 }

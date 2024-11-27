@@ -1,7 +1,6 @@
 package org.argos.file.manager.fileManager;
 
 import org.argos.file.manager.exceptions.BadRequestError;
-import org.argos.file.manager.exceptions.NotFoundError;
 import org.argos.file.manager.repository.S3Repository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,18 +15,32 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-
+/**
+ * Unit tests for the {@link S3Repository#uploadDirectory(String, String)} method.
+ * These tests cover scenarios including successful uploads, invalid inputs,
+ * and handling of exceptions during the directory upload process.
+ */
 class UploadDirectoryTest {
 
     private S3Client mockS3Client;
     private S3Repository s3Repository;
 
+    /**
+     * Set up the test environment before each test.
+     * Creates a mock S3Client and initializes the S3Repository.
+     */
     @BeforeEach
     void setUp() {
         mockS3Client = mock(S3Client.class);
         s3Repository = new S3Repository(mockS3Client);
     }
 
+    /**
+     * Test case for a successful upload of all files in a local directory to S3.
+     * Verifies that the correct number of files are uploaded and the S3 client is called the correct number of times.
+     *
+     * @throws IOException if an I/O error occurs while creating the test files.
+     */
     @Test
     void testUploadDirectory_Success() throws IOException {
         String projectId = "testProject";
@@ -47,6 +60,10 @@ class UploadDirectoryTest {
         Files.deleteIfExists(directory);
     }
 
+    /**
+     * Test case for an invalid (null) project ID when uploading a directory.
+     * Verifies that the correct BadRequestError is thrown with the expected message.
+     */
     @Test
     void testUploadDirectory_NullProjectId() {
         String projectId = null;
@@ -57,6 +74,10 @@ class UploadDirectoryTest {
         assertEquals("Project ID cannot be null or empty.", exception.getMessage());
     }
 
+    /**
+     * Test case for a blank project ID when uploading a directory.
+     * Verifies that the correct BadRequestError is thrown with the expected message.
+     */
     @Test
     void testUploadDirectory_BlankProjectId() {
         String projectId = "   ";
@@ -67,6 +88,10 @@ class UploadDirectoryTest {
         assertEquals("Project ID cannot be null or empty.", exception.getMessage());
     }
 
+    /**
+     * Test case for an invalid local directory path when uploading files to S3.
+     * Verifies that the correct BadRequestError is thrown with the expected message.
+     */
     @Test
     void testUploadDirectory_InvalidDirectory() {
         String projectId = "testProject";
@@ -77,23 +102,40 @@ class UploadDirectoryTest {
         assertTrue(exception.getMessage().contains("Invalid local directory:"));
     }
 
+    /**
+     * Test case for an empty directory. It verifies that if the directory has no files to upload,
+     * a BadRequestError is thrown indicating no files found.
+     *
+     * @throws IOException if an I/O error occurs during the creation of the temporary directory.
+     */
     @Test
     void testUploadDirectory_EmptyDirectory() throws IOException {
         String projectId = "testProject";
         Path emptyDir = Files.createTempDirectory("emptyDir");
 
         try {
-            assertThrows(NotFoundError.class, () -> uploadDirectoryAndThrow(projectId, emptyDir.toString()));
+            assertThrowsExactly(BadRequestError.class, (() -> uploadDirectoryAndThrow(projectId, emptyDir.toString())));
         } finally {
             Files.deleteIfExists(emptyDir);
         }
     }
 
+    /**
+     * Helper method to upload a directory and throw any exceptions.
+     * This is used for testing scenarios where exceptions are expected.
+     *
+     * @param projectId the ID of the project.
+     * @param directoryPath the path to the local directory.
+     * @throws BadRequestError if the upload fails.
+     */
     private void uploadDirectoryAndThrow(String projectId, String directoryPath) {
         s3Repository.uploadDirectory(projectId, directoryPath);
     }
 
-
+    /**
+     * Test case for an IOException occurring while reading the directory.
+     * This simulates an error during the file walking process and verifies that the appropriate error is thrown.
+     */
     @Test
     void testUploadDirectory_IOException() {
         String projectId = "testProject";
@@ -104,7 +146,7 @@ class UploadDirectoryTest {
             mockedFiles.when(() -> Files.isDirectory(directory)).thenReturn(true);
             mockedFiles.when(() -> Files.walk(directory)).thenThrow(new IOException("Simulated IO error"));
 
-            assertThrows(BadRequestError.class, () -> uploadDirectoryAndThrow(projectId, directory.toString()));
+            assertThrowsExactly(BadRequestError.class, (() -> uploadDirectoryAndThrow(projectId, directory.toString())));
         }
     }
 }
