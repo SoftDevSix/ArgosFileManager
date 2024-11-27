@@ -25,9 +25,57 @@ public class S3Repository implements IStorageRepository {
         this.s3Client = s3Client;
     }
 
+    private boolean isBucketEmpty() {
+        ListObjectsV2Request request = ListObjectsV2Request.builder()
+                .bucket(BUCKET_NAME)
+                .build();
+
+        ListObjectsV2Response response = s3Client.listObjectsV2(request);
+        return response.contents().isEmpty();
+    }
+
+    private void clearBucket() {
+        ListObjectsV2Request request = ListObjectsV2Request.builder()
+                .bucket(BUCKET_NAME)
+                .build();
+
+        ListObjectsV2Response response = s3Client.listObjectsV2(request);
+
+        List<ObjectIdentifier> objectsToDelete = response.contents().stream()
+                .map(s3Object -> ObjectIdentifier.builder().key(s3Object.key()).build())
+                .collect(Collectors.toList());
+
+        if (!objectsToDelete.isEmpty()) {
+            DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
+                    .bucket(BUCKET_NAME)
+                    .delete(Delete.builder().objects(objectsToDelete).build())
+                    .build();
+            s3Client.deleteObjects(deleteRequest);
+        }
+    }
+
+    private void createEmptyCoverageFile() {
+        String key = "coverage.json";
+        String content = "{}";
+
+        try {
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(BUCKET_NAME)
+                            .key(key)
+                            .build(),
+                    RequestBody.fromBytes(content.getBytes(StandardCharsets.UTF_8))
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to create empty coverage.json file: " + e.getMessage());
+        }
+    }
 
     @Override
     public Map<String, String> uploadDirectory(String localDir) {
+        if (!isBucketEmpty()) clearBucket();
+        createEmptyCoverageFile();
         return uploadFiles(localDir);
     }
 
