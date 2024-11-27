@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 /**
  * Repository implementation for interacting with AWS S3.
+ * This class provides methods to upload a directory of files, list files in a project, and retrieve the content of a specific file from an S3 bucket.
  */
 @Repository
 public class S3Repository implements IStorageRepository {
@@ -22,7 +23,7 @@ public class S3Repository implements IStorageRepository {
 
     /**
      * Constructs a new S3Repository with the given S3 client.
-     * The bucket name is loaded from environment variables.
+     * The bucket name is loaded from environment variables using the Dotenv library.
      *
      * @param s3Client the S3 client to use for interacting with the S3 bucket.
      */
@@ -33,6 +34,14 @@ public class S3Repository implements IStorageRepository {
         this.BUCKET_NAME = dotenv.get("AWS_BUCKET_NAME");
     }
 
+    /**
+     * Uploads all files from a local directory to the S3 bucket under a specific project.
+     * The local directory structure will be preserved within the S3 bucket.
+     *
+     * @param projectId the unique identifier for the project.
+     * @param localDir the local directory path containing the files to be uploaded.
+     * @return a map containing the file paths as keys and upload status as values.
+     */
     @Override
     public Map<String, String> uploadDirectory(String projectId, String localDir) {
         Map<String, String> result = new HashMap<>();
@@ -62,6 +71,12 @@ public class S3Repository implements IStorageRepository {
         return result;
     }
 
+    /**
+     * Lists all the files stored in the S3 bucket for a specific project.
+     *
+     * @param projectId the unique identifier for the project.
+     * @return a list of file paths (keys) for the project stored in the S3 bucket.
+     */
     @Override
     public List<String> listFiles(String projectId) {
         String prefix = String.format("projects/%s/", projectId);
@@ -83,6 +98,13 @@ public class S3Repository implements IStorageRepository {
         }
     }
 
+    /**
+     * Retrieves the content of a specific file stored in the S3 bucket for a given project.
+     *
+     * @param projectId the unique identifier for the project.
+     * @param filePath the path of the file within the S3 bucket.
+     * @return the content of the file as a String, or an error message if the file could not be retrieved.
+     */
     @Override
     public String getFileContent(String projectId, String filePath) {
         String key = String.format("projects/%s/%s", projectId, filePath);
