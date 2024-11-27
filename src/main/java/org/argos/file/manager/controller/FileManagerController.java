@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * REST Controller for managing files in AWS S3.
+ */
 @RestController
 @RequestMapping("/api")
 public class FileManagerController {
@@ -15,7 +17,10 @@ public class FileManagerController {
     private S3FileService s3FileService;
 
     /**
-     * POST /upload - Upload an entire directory to S3
+     * Uploads an entire directory to the S3 bucket.
+     *
+     * @param localDir the path to the local directory to upload.
+     * @return a map containing the uploaded file keys and their statuses.
      */
     @PostMapping("/upload")
     public Map<String, String> uploadDirectory(@RequestParam String localDir) {
@@ -23,7 +28,9 @@ public class FileManagerController {
     }
 
     /**
-     * GET /files - List all files in the S3 bucket
+     * Lists all files in the S3 bucket.
+     *
+     * @return a list of file keys in the S3 bucket.
      */
     @GetMapping("/files")
     public List<String> listFiles() {
@@ -31,7 +38,10 @@ public class FileManagerController {
     }
 
     /**
-     * GET /file - Get content of a specific file by key
+     * Retrieves the content of a specific file from the S3 bucket.
+     *
+     * @param key the key of the file to retrieve.
+     * @return the content of the file as a string.
      */
     @GetMapping("/file")
     public String getFile(@RequestParam String key) {

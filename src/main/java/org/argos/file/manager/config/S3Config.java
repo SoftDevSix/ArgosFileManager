@@ -8,9 +8,17 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
+/**
+ * Configuration class for setting up the AWS S3 client.
+ */
 @Configuration
 public class S3Config {
 
+    /**
+     * Creates and configures an S3 client bean.
+     *
+     * @return an S3Client instance configured with credentials and region from environment variables.
+     */
     @Bean
     public S3Client s3Client() {
         Dotenv dotenv = Dotenv.load();
