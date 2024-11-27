@@ -34,7 +34,7 @@ public class S3FileService {
      * @return a map containing the generated project ID and the statuses of the uploaded files.
      */
     public Map<String, Object> uploadDirectory(String localDir) {
-        String projectId = generateProjectId();  // Generate a unique project ID
+        String projectId = generateProjectId();
         Map<String, String> uploadResults = storageRepository.uploadDirectory(projectId, localDir);
 
         Map<String, Object> response = new HashMap<>();
@@ -51,7 +51,7 @@ public class S3FileService {
      * @return a unique project ID as a string.
      */
     private String generateProjectId() {
-        return UUID.randomUUID().toString();  // Generate a UUID as the project ID
+        return UUID.randomUUID().toString();
     }
 
     /**

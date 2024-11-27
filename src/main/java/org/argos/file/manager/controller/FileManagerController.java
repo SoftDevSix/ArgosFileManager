@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * REST Controller for managing files in AWS S3.
  */
@@ -14,8 +13,17 @@ import java.util.Map;
 @RequestMapping("/api")
 public class FileManagerController {
 
+    private final S3FileService s3FileService;
+
+    /**
+     * Constructor-based dependency injection for S3FileService.
+     *
+     * @param s3FileService the S3 file service.
+     */
     @Autowired
-    private S3FileService s3FileService;
+    public FileManagerController(S3FileService s3FileService) {
+        this.s3FileService = s3FileService;
+    }
 
     /**
      * Uploads an entire directory to the S3 bucket and generates a new project ID.

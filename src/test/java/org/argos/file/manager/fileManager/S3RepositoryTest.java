@@ -21,8 +21,9 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for the {@link S3Repository}.
  *
- * This class tests the repository methods related to interacting with AWS S3,
- * including listing files, uploading directories, and retrieving file content.
+ * This test class verifies the interaction between {@link S3Repository} and the AWS S3 API.
+ * It includes tests for listing files, uploading directories, retrieving file content,
+ * and handling exceptions during S3 operations.
  */
 class S3RepositoryTest {
 
@@ -31,6 +32,9 @@ class S3RepositoryTest {
 
     private S3Repository s3Repository;
 
+    /**
+     * Initializes mocks and the S3Repository instance before each test.
+     */
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -38,7 +42,8 @@ class S3RepositoryTest {
     }
 
     /**
-     * Tests the method for listing files for a specific project when the S3 bucket is empty.
+     * Tests the listFiles method when the S3 bucket is empty.
+     * Ensures that the returned list is empty and that the correct S3Client method is called.
      */
     @Test
     void testListFiles_EmptyBucket() {
@@ -54,7 +59,8 @@ class S3RepositoryTest {
     }
 
     /**
-     * Tests the method for listing files for a specific project when there are files in the S3 bucket.
+     * Tests the listFiles method when files are present in the S3 bucket.
+     * Verifies that the correct file paths are returned.
      */
     @Test
     void testListFiles_WithFiles() {
@@ -73,7 +79,8 @@ class S3RepositoryTest {
     }
 
     /**
-     * Tests the upload directory method by verifying that files are uploaded with the correct S3 keys.
+     * Tests the uploadDirectory method.
+     * Verifies that files are uploaded with correct keys and checks the upload results.
      */
     @Test
     void testUploadDirectory() throws Exception {
@@ -96,7 +103,8 @@ class S3RepositoryTest {
     }
 
     /**
-     * Tests the method for retrieving the content of a specific file from S3.
+     * Tests the getFileContent method.
+     * Verifies that the correct content is retrieved for the specified file.
      */
     @Test
     void testGetFileContent() {
@@ -129,6 +137,66 @@ class S3RepositoryTest {
         String result = s3Repository.getFileContent(projectId, filePath);
 
         assertEquals(fileContent, result);
+        verify(s3Client, times(1)).getObject(any(GetObjectRequest.class));
+    }
+
+    /**
+     * Tests exception handling in the listFiles method.
+     * Verifies that an error message is returned when S3 throws an exception.
+     */
+    @Test
+    void testListFiles_ThrowsException() {
+        String projectId = "test-project-id";
+        when(s3Client.listObjectsV2(any(ListObjectsV2Request.class)))
+                .thenThrow(S3Exception.builder().message("S3 error").build());
+
+        List<String> files = s3Repository.listFiles(projectId);
+
+        assertTrue(files.contains("Error fetching file list: S3 error"));
+        verify(s3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
+    }
+
+    /**
+     * Tests exception handling in the uploadDirectory method.
+     * Verifies that an error message is included in the result map when S3 throws an exception.
+     */
+    @Test
+    void testUploadDirectory_ThrowsException() throws Exception {
+        String projectId = "test-project-id";
+        Path tempDir = Files.createTempDirectory("testUploadDirectoryException");
+        Path tempFile = Files.createTempFile(tempDir, "testFile", ".txt");
+        Files.writeString(tempFile, "Sample content");
+
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenThrow(S3Exception.builder().message("Upload error").build());
+
+        Map<String, String> result = s3Repository.uploadDirectory(projectId, tempDir.toString());
+
+        assertTrue(result.containsKey("error"));
+        assertEquals("Failed to upload files: Upload error", result.get("error"));
+
+        verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+
+        Files.deleteIfExists(tempFile);
+        Files.deleteIfExists(tempDir);
+    }
+
+    /**
+     * Tests exception handling in the getFileContent method.
+     * Verifies that an error message is returned when S3 throws an exception.
+     */
+    @Test
+    void testGetFileContent_ThrowsException() {
+        String projectId = "test-project-id";
+        String filePath = "file1.txt";
+
+        when(s3Client.getObject(any(GetObjectRequest.class)))
+                .thenThrow(S3Exception.builder().message("GetObject error").build());
+
+        String result = s3Repository.getFileContent(projectId, filePath);
+
+        assertEquals("Failed to retrieve file: GetObject error", result);
+
         verify(s3Client, times(1)).getObject(any(GetObjectRequest.class));
     }
 }

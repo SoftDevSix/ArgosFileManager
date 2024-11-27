@@ -1,5 +1,6 @@
+
 # ArgosFileManager
-File Manager dedicated manage and store unstructured data.
+File Manager dedicated to managing and storing unstructured data.
 
 ## File Manager API Documentation
 
@@ -14,7 +15,7 @@ This document provides the details of the File Manager API endpoints, including 
 - **URL**: `/api/files`
 
 #### Request Parameters
-- None
+- **projectId**: The unique identifier of the project.
 
 #### Response
 - **Status Code**: 200 OK
@@ -23,20 +24,21 @@ This document provides the details of the File Manager API endpoints, including 
 #### Example Response
 ```json
 [
-    "projectFiles/dirctoryFirst/class1.java",
-    "projectFiles/sec/classDirSec.java",
-    "projectFiles/subdirector/subClass1.java"
+    "projects/{projectId}/projectFiles/dirctoryFirst/class1.java",
+    "projects/{projectId}/projectFiles/sec/classDirSec.java",
+    "projects/{projectId}/projectFiles/subdirector/subClass1.java"
 ]
 ```
 
 ### 2. Get File Content
 
 #### Request
-- **Method**: GET
+- **Method**: `GET`
 - **URL**: `/api/file`
-  
+
 #### Request Parameters
-- **key**: The unique identifier of the file (e.g., file name).
+- **projectId**: The unique identifier of the project.
+- **filePath**: The path of the file.
 
 #### Response
 - **Status Code**: 200 OK
@@ -44,7 +46,7 @@ This document provides the details of the File Manager API endpoints, including 
 
 #### Example Request
 ```http
-GET /api/file?key=file1.java
+GET /api/file?projectId=test-project-id&filePath=file1.java
 ```
 
 #### Example Response
@@ -56,12 +58,10 @@ public class Main {
 }
 ```
 
----
-
 ### 3. Upload Directory
 
 #### Request
-- **Method**: POST
+- **Method**: `POST`
 - **URL**: `/api/upload`
 
 #### Request Parameters
@@ -79,11 +79,11 @@ POST /api/upload?localDir=test/
 #### Example Response
 ```json
 {
-    "projectFiles/subdirector/subClass1.java": "Uploaded",
-    "projectFiles/sec/classDirSec.java": "Uploaded",
-    "projectFiles/dirctoryFirst/class1.java": "Uploaded"
+  "uploadResults": {
+    "projects/e011bad2-0b57-4ed3-a278-29b255d25621/projectFiles/dirctoryFirst/class1.java": "Uploaded",
+    "projects/e011bad2-0b57-4ed3-a278-29b255d25621/projectFiles/subdirector/subClass1.java": "Uploaded",
+    "projects/e011bad2-0b57-4ed3-a278-29b255d25621/projectFiles/sec/classDirSec.java": "Uploaded"
+  },
+  "projectId": "e011bad2-0b57-4ed3-a278-29b255d25621"
 }
 ```
-
----
-

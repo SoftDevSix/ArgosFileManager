@@ -9,7 +9,8 @@ import java.util.*;
 import java.nio.file.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 
 /**
  * Repository implementation for interacting with AWS S3.
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 public class S3Repository implements IStorageRepository {
 
     private final S3Client s3Client;
-    private final String BUCKET_NAME;
+    private final String bucketName;
 
     /**
      * Constructs a new S3Repository with the given S3 client.
@@ -31,7 +32,7 @@ public class S3Repository implements IStorageRepository {
         this.s3Client = s3Client;
 
         Dotenv dotenv = Dotenv.load();
-        this.BUCKET_NAME = dotenv.get("AWS_BUCKET_NAME");
+        this.bucketName = dotenv.get("AWS_BUCKET_NAME");
     }
 
     /**
@@ -47,16 +48,17 @@ public class S3Repository implements IStorageRepository {
         Map<String, String> result = new HashMap<>();
         Path directory = Paths.get(localDir);
 
-        try {
-            List<Path> files = Files.walk(directory)
-                    .filter(Files::isRegularFile)
-                    .collect(Collectors.toList());
+        try (Stream<Path> stream = Files.walk(directory)) {
+            List<Path> files = stream.filter(Files::isRegularFile).toList();
 
             for (Path file : files) {
-                String key = String.format("projects/%s/%s", projectId, directory.relativize(file).toString().replace("\\", "/"));
+                String key = String.format("projects/%s/%s",
+                        projectId,
+                        directory.relativize(file).toString().replace("\\", "/"));
+
                 s3Client.putObject(
                         PutObjectRequest.builder()
-                                .bucket(BUCKET_NAME)
+                                .bucket(bucketName)
                                 .key(key)
                                 .build(),
                         RequestBody.fromFile(file)
@@ -64,12 +66,12 @@ public class S3Repository implements IStorageRepository {
                 result.put(key, "Uploaded");
             }
         } catch (Exception e) {
-            e.printStackTrace();
             result.put("error", "Failed to upload files: " + e.getMessage());
         }
-
         return result;
     }
+
+
 
     /**
      * Lists all the files stored in the S3 bucket for a specific project.
@@ -80,23 +82,23 @@ public class S3Repository implements IStorageRepository {
     @Override
     public List<String> listFiles(String projectId) {
         String prefix = String.format("projects/%s/", projectId);
-
         try {
             ListObjectsV2Request request = ListObjectsV2Request.builder()
-                    .bucket(BUCKET_NAME)
+                    .bucket(bucketName)
                     .prefix(prefix)
                     .build();
 
             ListObjectsV2Response response = s3Client.listObjectsV2(request);
+
             return response.contents()
                     .stream()
                     .map(S3Object::key)
-                    .collect(Collectors.toList());
+                    .toList();
         } catch (Exception e) {
-            e.printStackTrace();
             return List.of("Error fetching file list: " + e.getMessage());
         }
     }
+
 
     /**
      * Retrieves the content of a specific file stored in the S3 bucket for a given project.
@@ -111,7 +113,7 @@ public class S3Repository implements IStorageRepository {
 
         try {
             GetObjectRequest request = GetObjectRequest.builder()
-                    .bucket(BUCKET_NAME)
+                    .bucket(bucketName)
                     .key(key)
                     .build();
 
@@ -119,7 +121,6 @@ public class S3Repository implements IStorageRepository {
                 return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             return "Failed to retrieve file: " + e.getMessage();
         }
     }
