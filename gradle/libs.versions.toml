@@ -21,3 +21,5 @@ springboot-devtools = { module = "org.springframework.boot:spring-boot-devtools"
 springboot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+dotenv-java = { module = "io.github.cdimascio:dotenv-java", version = "3.0.0" }
+aws-s3 = { module = "software.amazon.awssdk:s3", version = "2.20.108" }

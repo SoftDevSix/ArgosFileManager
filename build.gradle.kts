@@ -46,10 +46,13 @@ dependencies {
     implementation(libs.springboot.starter.web)
     compileOnly(libs.lombok)
     developmentOnly(libs.springboot.devtools)
+    implementation(libs.dotenv.java)
+    implementation(libs.aws.s3)
     annotationProcessor(libs.lombok)
     testImplementation(libs.springboot.starter.test)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
+
 
 tasks.test {
     testLogging {
