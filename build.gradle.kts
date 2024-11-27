@@ -15,40 +15,28 @@ java {
     }
 }
 
-sonarqube {
-    val sonarProjectKey = System.getenv("SONAR_PROJECT_KEY") ?: ""
-    val sonarHostUrl = System.getenv("SONAR_HOST_URL") ?: ""
-    val sonarToken = System.getenv("SONAR_TOKEN") ?: ""
-    properties {
-        property("sonar.projectKey", sonarProjectKey)
-        property("sonar.host.url", sonarHostUrl)
-        property("sonar.token", sonarToken)
-        property("sonar.qualitygate.wait", "true")
-    }
-}
-
-configurations {
-    compileOnly {
-        extendsFrom(configurations.annotationProcessor.get())
-    }
-}
-
 repositories {
+    maven("https://jitpack.io") {
+        content {
+            includeGroup("com.github.cdimascio")
+        }
+    }
     mavenCentral()
-}
-
-application {
-    mainClass.set("org.argos.file.manager.ArgosFileManagerApplication")
 }
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("software.amazon.awssdk:s3:2.20.108")
+    implementation("io.github.cdimascio:dotenv-java:3.0.0")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+application {
+    mainClass.set("org.argos.file.manager.ArgosFileManagerApplication")
 }
 
 tasks.withType<Test> {

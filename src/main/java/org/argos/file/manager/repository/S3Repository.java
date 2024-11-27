@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 
 @Repository
-public class S3Repository implements IRepository {
+public class S3Repository implements IStorageRepository {
 
     private final S3Client s3Client;
     private final String BUCKET_NAME = "group8-image-uploader-s3";
@@ -54,9 +54,28 @@ public class S3Repository implements IRepository {
         }
     }
 
+    private void createEmptyCoverageFile() {
+        String key = "coverage.json";
+        String content = "{}";
+
+        try {
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(BUCKET_NAME)
+                            .key(key)
+                            .build(),
+                    RequestBody.fromBytes(content.getBytes(StandardCharsets.UTF_8))
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to create empty coverage.json file: " + e.getMessage());
+        }
+    }
+
     @Override
     public Map<String, String> uploadDirectory(String localDir) {
         if (!isBucketEmpty()) clearBucket();
+        createEmptyCoverageFile();
         return uploadFiles(localDir);
     }
 
