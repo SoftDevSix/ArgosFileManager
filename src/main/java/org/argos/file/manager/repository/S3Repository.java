@@ -35,10 +35,6 @@ public class S3Repository implements IStorageRepository {
 
         Dotenv dotenv = Dotenv.load();
         this.bucketName = dotenv.get("AWS_BUCKET_NAME");
-
-        if (this.bucketName == null || this.bucketName.isBlank()) {
-            throw new BadRequestError("AWS bucket name is not configured properly.");
-        }
     }
 
     /**
@@ -55,7 +51,6 @@ public class S3Repository implements IStorageRepository {
         }
 
         Path directory = Paths.get(localDir);
-
         if (!Files.exists(directory) || !Files.isDirectory(directory)) {
             throw new BadRequestError("Invalid local directory: " + localDir);
         }
@@ -65,7 +60,7 @@ public class S3Repository implements IStorageRepository {
             List<Path> files = stream.filter(Files::isRegularFile).toList();
 
             if (files.isEmpty()) {
-                throw new BadRequestError("No files found in the directory to upload.");
+                throw new NotFoundError("No files found in the directory to upload.");
             }
 
             for (Path file : files) {
@@ -83,7 +78,7 @@ public class S3Repository implements IStorageRepository {
                 result.put(key, "Uploaded");
             }
         } catch (IOException e) {
-            throw new BadRequestError("Failed to read files from directory: " + e.getMessage());
+            throw new NotFoundError("Failed to read files from directory: " + e.getMessage());
         } catch (S3Exception e) {
             throw new BadRequestError("Failed to upload files to S3: " + e.awsErrorDetails().errorMessage());
         }

@@ -8,19 +8,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.web.client.HttpServerErrorException;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
 
 /**
  * Unit tests for the {@link S3Repository}.
@@ -127,7 +128,6 @@ class S3RepositoryTest {
         AwsErrorDetails mockErrorDetails = AwsErrorDetails.builder()
                 .errorMessage("Upload error")
                 .build();
-
         AwsServiceException mockS3Exception = S3Exception.builder()
                 .awsErrorDetails(mockErrorDetails)
                 .build();
@@ -136,15 +136,25 @@ class S3RepositoryTest {
                 .thenThrow(mockS3Exception);
 
         BadRequestError exception = assertThrows(BadRequestError.class, () ->
-                s3Repository.uploadDirectory(projectId, tempDir.toString())
+                uploadToS3(projectId, tempDir)
         );
 
         assertEquals("Failed to upload files to S3: Upload error", exception.getMessage());
-
         verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
 
         Files.deleteIfExists(tempFile);
         Files.deleteIfExists(tempDir);
+    }
+
+    /**
+     * Encapsulates the invocation of the S3 upload logic for testing.
+     *
+     * @param projectId the project ID
+     * @param directoryPath the directory to upload
+     * @throws BadRequestError if an error occurs during upload
+     */
+    private void uploadToS3(String projectId, Path directoryPath) throws BadRequestError {
+        s3Repository.uploadDirectory(projectId, directoryPath.toString());
     }
 
 
@@ -193,4 +203,43 @@ class S3RepositoryTest {
 
         verify(s3Client, times(1)).getObject(any(GetObjectRequest.class));
     }
+
+    @Test
+    void testGetFileContent_EmptyProjectId_ThrowsBadRequestError() {
+        String filePath = "test-file.txt";
+
+        Exception exception = assertThrows(BadRequestError.class, () ->
+                s3Repository.getFileContent("", filePath)
+        );
+        assertEquals("Project ID and file path cannot be null or empty.", exception.getMessage());
+    }
+
+    @Test
+    void testGetFileContent_EmptyFilePath_ThrowsBadRequestError() {
+        String projectId = "test-project-id";
+
+        Exception exception = assertThrows(BadRequestError.class, () ->
+                s3Repository.getFileContent(projectId, "")
+        );
+        assertEquals("Project ID and file path cannot be null or empty.", exception.getMessage());
+    }
+
+
+    @Test
+    void testGetFileContent_ThrowsIOException() throws Exception {
+        String projectId = "test-project-id";
+        String filePath = "test-file.txt";
+
+        ResponseInputStream<GetObjectResponse> mockResponseInputStream = mock(ResponseInputStream.class);
+        when(mockResponseInputStream.readAllBytes()).thenThrow(new IOException("Read error"));
+
+        when(s3Client.getObject(any(GetObjectRequest.class))).thenReturn(mockResponseInputStream);
+
+        Exception exception = assertThrows(BadRequestError.class, () ->
+                s3Repository.getFileContent(projectId, filePath)
+        );
+        assertTrue(exception.getMessage().contains("Error reading file content"));
+    }
+
+
 }

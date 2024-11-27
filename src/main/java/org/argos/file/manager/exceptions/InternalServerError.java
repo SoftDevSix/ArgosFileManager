@@ -1,7 +1,10 @@
 package org.argos.file.manager.exceptions;
 
-public class InternalServerError extends RuntimeException {
+/**
+ * Exception for Internal Server errors.
+ */
+public class InternalServerError extends ApiException {
     public InternalServerError(String message) {
-        super(message);
+        super(message, 500);
     }
 }

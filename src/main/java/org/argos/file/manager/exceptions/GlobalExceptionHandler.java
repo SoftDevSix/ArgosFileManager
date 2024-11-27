@@ -13,8 +13,13 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String TIMESTAMP = "timestamp";
+    private static final String STATUS = "status";
+    private static final String ERROR = "error";
+    private static final String MESSAGE = "message";
+
     /**
-     * Handles all exceptions extending ApiException.
+     * Handles all exceptions implementing IApiException.
      *
      * @param ex the exception to handle
      * @return a ResponseEntity with the error details
@@ -22,28 +27,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Map<String, Object>> handleApiException(ApiException ex) {
         Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("timestamp", LocalDateTime.now());
-        errorDetails.put("status", ex.getStatusCode());
-        errorDetails.put("error", ex.getMessage());
+        errorDetails.put(TIMESTAMP, LocalDateTime.now());
+        errorDetails.put(STATUS, ex.getStatusCode());
+        errorDetails.put(ERROR, ex.getMessage());
 
         return ResponseEntity.status(ex.getStatusCode()).body(errorDetails);
-    }
-
-    /**
-     * Handles InternalServerError exceptions.
-     *
-     * @param ex the exception to handle
-     * @return a ResponseEntity with the error details
-     */
-    @ExceptionHandler(InternalServerError.class)
-    public ResponseEntity<Map<String, Object>> handleInternalServerError(InternalServerError ex) {
-        Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("timestamp", LocalDateTime.now());
-        errorDetails.put("status", 500);
-        errorDetails.put("error", "Internal Server Error");
-        errorDetails.put("message", ex.getMessage());
-
-        return ResponseEntity.status(500).body(errorDetails);
     }
 
     /**
@@ -55,10 +43,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
         Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("timestamp", LocalDateTime.now());
-        errorDetails.put("status", 500);
-        errorDetails.put("error", "Internal Server Error");
-        errorDetails.put("message", ex.getMessage());
+        errorDetails.put(TIMESTAMP, LocalDateTime.now());
+        errorDetails.put(STATUS, 500);
+        errorDetails.put(ERROR, "Internal Server Error");
+        errorDetails.put(MESSAGE, ex.getMessage());
 
         return ResponseEntity.status(500).body(errorDetails);
     }

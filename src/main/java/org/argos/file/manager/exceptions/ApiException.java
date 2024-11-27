@@ -13,11 +13,6 @@ public abstract class ApiException extends RuntimeException implements IApiExcep
     }
 
     @Override
-    public String getMessage() {
-        return super.getMessage();
-    }
-
-    @Override
     public int getStatusCode() {
         return statusCode;
     }
