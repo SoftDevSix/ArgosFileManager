@@ -43,9 +43,10 @@ application {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("software.amazon.awssdk:s3:2.20.108")
     compileOnly("org.projectlombok:lombok")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.projectlombok:lombok")
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
