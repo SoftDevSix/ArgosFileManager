@@ -44,12 +44,14 @@ configurations {
 
 dependencies {
     implementation(libs.springboot.starter.web)
-    compileOnly(libs.lombok)
-    developmentOnly(libs.springboot.devtools)
-    implementation(libs.dotenv.java)
     implementation(libs.aws.s3)
+    implementation(libs.dotenv.java)
+    compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    testImplementation(libs.springboot.starter.test)
+    testImplementation(libs.springboot.starter.test) {
+        exclude(group = "org.mockito", module = "mockito-core")
+    }
+    testImplementation("org.mockito:mockito-junit-jupiter:${libs.versions.mockito.get()}")
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 
