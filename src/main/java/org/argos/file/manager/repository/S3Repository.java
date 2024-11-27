@@ -6,8 +6,12 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -21,8 +25,42 @@ public class S3Repository implements IRepository {
         this.s3Client = s3Client;
     }
 
+    private boolean isBucketEmpty() {
+        ListObjectsV2Request request = ListObjectsV2Request.builder()
+                .bucket(BUCKET_NAME)
+                .build();
+
+        ListObjectsV2Response response = s3Client.listObjectsV2(request);
+        return response.contents().isEmpty();
+    }
+
+    private void clearBucket() {
+        ListObjectsV2Request request = ListObjectsV2Request.builder()
+                .bucket(BUCKET_NAME)
+                .build();
+
+        ListObjectsV2Response response = s3Client.listObjectsV2(request);
+
+        List<ObjectIdentifier> objectsToDelete = response.contents().stream()
+                .map(s3Object -> ObjectIdentifier.builder().key(s3Object.key()).build())
+                .collect(Collectors.toList());
+
+        if (!objectsToDelete.isEmpty()) {
+            DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
+                    .bucket(BUCKET_NAME)
+                    .delete(Delete.builder().objects(objectsToDelete).build())
+                    .build();
+            s3Client.deleteObjects(deleteRequest);
+        }
+    }
+
     @Override
     public Map<String, String> uploadDirectory(String localDir) {
+        if (!isBucketEmpty()) clearBucket();
+        return uploadFiles(localDir);
+    }
+
+    private Map<String, String> uploadFiles(String localDir) {
         Map<String, String> result = new HashMap<>();
         Path directory = Paths.get(localDir);
 
@@ -43,7 +81,6 @@ public class S3Repository implements IRepository {
                 );
                 result.put(key, "Uploaded");
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             result.put("error", "Failed to upload files: " + e.getMessage());
@@ -64,25 +101,23 @@ public class S3Repository implements IRepository {
                     .stream()
                     .map(S3Object::key)
                     .collect(Collectors.toList());
-
         } catch (Exception e) {
             e.printStackTrace();
-            return Collections.singletonList("Error fetching file list: " + e.getMessage());
+            return List.of("Error fetching file list: " + e.getMessage());
         }
     }
 
     @Override
     public String getFileContent(String key) {
         try {
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+            GetObjectRequest request = GetObjectRequest.builder()
                     .bucket(BUCKET_NAME)
                     .key(key)
                     .build();
 
-            try (InputStream inputStream = s3Client.getObject(getObjectRequest)) {
+            try (InputStream inputStream = s3Client.getObject(request)) {
                 return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             return "Failed to retrieve file: " + e.getMessage();
