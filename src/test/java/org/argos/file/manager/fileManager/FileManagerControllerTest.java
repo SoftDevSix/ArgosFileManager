@@ -35,7 +35,7 @@ class FileManagerControllerTest {
         String projectId = "test-project-id";
         when(s3FileService.listFiles(projectId)).thenReturn(List.of("file1.java", "file2.java"));
 
-        mockMvc.perform(get("/api/files").param("projectId", projectId))
+        mockMvc.perform(get("/fileManager/files").param("projectId", projectId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0]").value("file1.java"))
@@ -54,7 +54,7 @@ class FileManagerControllerTest {
         String fileContent = "This is a test file.";
         when(s3FileService.getFileContent(projectId, filePath)).thenReturn(fileContent);
 
-        mockMvc.perform(get("/api/file").param("projectId", projectId).param("filePath", filePath))
+        mockMvc.perform(get("/fileManager/file").param("projectId", projectId).param("filePath", filePath))
                 .andExpect(status().isOk())
                 .andExpect(content().string(fileContent));
 
@@ -78,7 +78,7 @@ class FileManagerControllerTest {
                                 "projectId", generatedProjectId,
                                 "uploadResults", uploadResult));
 
-        mockMvc.perform(post("/api/upload").param("localDir", "test/"))
+        mockMvc.perform(post("/fileManager/upload").param("localDir", "test/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.projectId").value(generatedProjectId))
                 .andExpect(

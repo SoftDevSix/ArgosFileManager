@@ -2,28 +2,21 @@ package org.argos.file.manager.controller;
 
 import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
 import org.argos.file.manager.service.S3FileService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * REST Controller for managing files in AWS S3.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/fileManager")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8081"})
+
+@AllArgsConstructor
 public class FileManagerController {
 
     private final S3FileService s3FileService;
-
-    /**
-     * Constructor-based dependency injection for S3FileService.
-     *
-     * @param s3FileService the S3 file service.
-     */
-    @Autowired
-    public FileManagerController(S3FileService s3FileService) {
-        this.s3FileService = s3FileService;
-    }
 
     /**
      * Uploads an entire directory to the S3 bucket and generates a new project ID.

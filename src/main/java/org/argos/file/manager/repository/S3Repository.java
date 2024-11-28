@@ -1,14 +1,12 @@
 package org.argos.file.manager.repository;
 
-import io.github.cdimascio.dotenv.Dotenv;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
-import java.util.stream.Stream;
 import org.argos.file.manager.exceptions.BadRequestError;
-import org.argos.file.manager.exceptions.InternalServerError;
 import org.argos.file.manager.exceptions.NotFoundError;
+import org.argos.file.manager.utils.FileProcessor;
+import org.argos.file.manager.utils.InputValidator;
+import org.argos.file.manager.utils.S3KeyGenerator;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -32,9 +30,7 @@ public class S3Repository implements IStorageRepository {
      */
     public S3Repository(S3Client s3Client) {
         this.s3Client = s3Client;
-
-        Dotenv dotenv = Dotenv.load();
-        this.bucketName = dotenv.get("AWS_BUCKET_NAME");
+        this.bucketName = System.getenv("AWS_BUCKET_NAME");
     }
 
     /**
@@ -46,42 +42,50 @@ public class S3Repository implements IStorageRepository {
      */
     @Override
     public Map<String, String> uploadDirectory(String projectId, String localDir) {
-        if (projectId == null || projectId.isBlank()) {
-            throw new BadRequestError("Project ID cannot be null or empty.");
-        }
+        InputValidator.getInstance().validateProjectId(projectId);
+        Path directory = InputValidator.getInstance().validateDirectory(localDir);
 
-        Path directory = Paths.get(localDir);
-        if (!Files.exists(directory) || !Files.isDirectory(directory)) {
-            throw new BadRequestError("Invalid local directory: " + localDir);
-        }
+        List<Path> files = FileProcessor.getInstance().getFilesFromDirectory(directory);
+        FileProcessor.getInstance().validateFilesExist(files);
 
         Map<String, String> result = new HashMap<>();
-        try (Stream<Path> stream = Files.walk(directory)) {
-            List<Path> files = stream.filter(Files::isRegularFile).toList();
-
-            if (files.isEmpty()) {
-                throw new BadRequestError("No files found in the directory to upload.");
-            }
-
-            for (Path file : files) {
-                String key =
-                        String.format(
-                                "projects/%s/%s",
-                                projectId,
-                                directory.relativize(file).toString().replace("\\", "/"));
-
-                s3Client.putObject(
-                        PutObjectRequest.builder().bucket(bucketName).key(key).build(),
-                        RequestBody.fromFile(file));
-                result.put(key, "Uploaded");
-            }
-        } catch (IOException e) {
-            throw new NotFoundError("Failed to read files from directory: " + e.getMessage());
-        } catch (S3Exception e) {
-            throw new BadRequestError(
-                    "Failed to upload files to S3: " + e.awsErrorDetails().errorMessage());
-        }
+        uploadFiles(projectId, directory, files, result);
         return result;
+    }
+
+    /**
+     * Uploads multiple files to S3 under the specified project.
+     *
+     * @param projectId the unique identifier for the project.
+     * @param directory the root directory of the files being uploaded.
+     * @param files the list of files to upload.
+     * @param result a map to store upload results.
+     */
+    private void uploadFiles(String projectId, Path directory, List<Path> files, Map<String, String> result) {
+        for (Path file : files) {
+            uploadSingleFile(projectId, directory, file, result);
+        }
+    }
+
+    /**
+     * Uploads a single file to S3.
+     *
+     * @param projectId the unique identifier for the project.
+     * @param directory the root directory of the files being uploaded.
+     * @param file the file to upload.
+     * @param result a map to store upload results.
+     */
+    private void uploadSingleFile(String projectId, Path directory, Path file, Map<String, String> result) {
+        String key = S3KeyGenerator.generateKey(projectId, directory, file);
+        try {
+            s3Client.putObject(
+                    PutObjectRequest.builder().bucket(bucketName).key(key).build(),
+                    RequestBody.fromFile(file)
+            );
+            result.put(key, "Uploaded");
+        } catch (S3Exception e) {
+            throw new BadRequestError("Failed to upload files to S3: " + e.awsErrorDetails().errorMessage());
+        }
     }
 
     /**
@@ -92,16 +96,12 @@ public class S3Repository implements IStorageRepository {
      */
     @Override
     public List<String> listFiles(String projectId) {
-        if (projectId == null || projectId.isBlank()) {
-            throw new BadRequestError("Project ID cannot be null or empty.");
-        }
-
+        InputValidator.getInstance().validateProjectId(projectId);
         String prefix = String.format("projects/%s/", projectId);
 
         try {
             ListObjectsV2Request request =
                     ListObjectsV2Request.builder().bucket(bucketName).prefix(prefix).build();
-
             ListObjectsV2Response response = s3Client.listObjectsV2(request);
 
             if (response.contents().isEmpty()) {
@@ -110,12 +110,11 @@ public class S3Repository implements IStorageRepository {
 
             return response.contents().stream().map(S3Object::key).toList();
         } catch (S3Exception e) {
-            String errorMessage =
-                    e.awsErrorDetails() != null
-                            ? e.awsErrorDetails().errorMessage()
-                            : "Unknown error occurred";
+            String errorMessage = e.awsErrorDetails() != null
+                    ? e.awsErrorDetails().errorMessage()
+                    : "Error occurred";
 
-            throw new InternalServerError("Failed to list files: " + errorMessage);
+            throw new BadRequestError("Failed to list files: " + errorMessage);
         }
     }
 
@@ -128,25 +127,19 @@ public class S3Repository implements IStorageRepository {
      */
     @Override
     public String getFileContent(String projectId, String filePath) {
-        if (projectId == null || projectId.isBlank() || filePath == null || filePath.isBlank()) {
-            throw new BadRequestError("Project ID and file path cannot be null or empty.");
-        }
+        InputValidator.getInstance().validateProjectId(projectId);
+        InputValidator.getInstance().validateFilePath(filePath);
 
         String key = String.format("projects/%s/%s", projectId, filePath);
 
         try {
-            GetObjectRequest request =
-                    GetObjectRequest.builder().bucket(bucketName).key(key).build();
-
-            try (InputStream inputStream = s3Client.getObject(request)) {
-                return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            }
+            GetObjectRequest request = GetObjectRequest.builder().bucket(bucketName).key(key).build();
+            return s3Client.getObjectAsBytes(request).asUtf8String();
         } catch (NoSuchKeyException e) {
             throw new NotFoundError("File not found: " + filePath);
         } catch (S3Exception e) {
-            throw new BadRequestError(
-                    "Failed to retrieve file: " + e.awsErrorDetails().errorMessage());
-        } catch (IOException e) {
+            throw new BadRequestError("Failed to retrieve file: " + e.awsErrorDetails().errorMessage());
+        } catch (Exception e) {
             throw new BadRequestError("Error reading file content: " + e.getMessage());
         }
     }

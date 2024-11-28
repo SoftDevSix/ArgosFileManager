@@ -12,7 +12,7 @@ This document provides the details of the File Manager API endpoints, including 
 
 #### Request
 - **Method**: `GET`
-- **URL**: `/api/files`
+- **URL**: `/fileManager/files`
 
 #### Request Parameters
 - **projectId**: The unique identifier of the project.
@@ -34,7 +34,7 @@ This document provides the details of the File Manager API endpoints, including 
 
 #### Request
 - **Method**: `GET`
-- **URL**: `/api/file`
+- **URL**: `/fileManager/file`
 
 #### Request Parameters
 - **projectId**: The unique identifier of the project.
@@ -46,7 +46,7 @@ This document provides the details of the File Manager API endpoints, including 
 
 #### Example Request
 ```http
-GET /api/file?projectId=test-project-id&filePath=file1.java
+GET /fileManager/file?projectId=test-project-id&filePath=file1.java
 ```
 
 #### Example Response
@@ -62,7 +62,7 @@ public class Main {
 
 #### Request
 - **Method**: `POST`
-- **URL**: `/api/upload`
+- **URL**: `/fileManager/upload`
 
 #### Request Parameters
 - **localDir**: The local directory path that contains the files to be uploaded.
@@ -73,7 +73,7 @@ public class Main {
 
 #### Example Request
 ```http
-POST /api/upload?localDir=test/
+POST /fileManager/upload?localDir=test/
 ```
 
 #### Example Response

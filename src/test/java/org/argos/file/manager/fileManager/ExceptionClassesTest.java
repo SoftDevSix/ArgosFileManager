@@ -1,13 +1,19 @@
 package org.argos.file.manager.fileManager;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import org.argos.file.manager.exceptions.ApiException;
 import org.argos.file.manager.exceptions.GlobalExceptionHandler;
+import org.argos.file.manager.exceptions.NotFoundError;
+import org.argos.file.manager.utils.FileProcessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
@@ -66,6 +72,22 @@ class ExceptionClassesTest {
     static class CustomApiException extends ApiException {
         protected CustomApiException(String message, int statusCode) {
             super(message, statusCode);
+        }
+    }
+
+    @Test
+    void testGetFilesFromDirectoryThrowsNotFoundError() {
+        Path mockDirectory = mock(Path.class);
+
+        try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+            mockedFiles.when(() -> Files.walk(mockDirectory)).thenThrow(IOException.class);
+
+            FileProcessor fileProcessor = FileProcessor.getInstance();
+            NotFoundError thrown = assertThrows(NotFoundError.class, () -> {
+                fileProcessor.getFilesFromDirectory(mockDirectory);
+            });
+
+            assertEquals("Failed to read files from directory: null", thrown.getMessage());
         }
     }
 }

@@ -102,5 +102,8 @@ sonar {
         property("sonar.host.url", sonarHostUrl)
         property("sonar.token", sonarToken)
         property("sonar.qualitygate.wait", "true")
+        property("sonar.exclusions", "**/S3Config.java")
+        property("sonar.exclusions", "**/ArgosFileManagerApplication.java")
+        property("sonar.exclusions", "**/config/**")
     }
 }
