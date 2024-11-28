@@ -32,7 +32,7 @@ jobs:
       - name: Debug AWS Environment Variables
         run: |
           echo "AWS_REGION=$AWS_REGION"
-          echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:0:4}******"  # Redact key for security
+          echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:0:4}******"
         shell: bash
 
       - name: Build with Gradle
