@@ -1,6 +1,5 @@
 package org.argos.file.manager.config;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -21,11 +20,13 @@ public class S3Config {
      */
     @Bean
     public S3Client s3Client() {
-        Dotenv dotenv = Dotenv.load();
+        String accessKeyId = System.getenv("AWS_ACCESS_KEY_ID");
+        String secretAccessKey = System.getenv("AWS_SECRET_ACCESS_KEY");
+        String region = System.getenv("AWS_REGION");
 
-        String accessKeyId = dotenv.get("AWS_ACCESS_KEY_ID");
-        String secretAccessKey = dotenv.get("AWS_SECRET_ACCESS_KEY");
-        String region = dotenv.get("AWS_REGION", "us-east-1");
+        if (accessKeyId == null || secretAccessKey == null || region == null) {
+            throw new IllegalStateException("AWS environment variables are not set.");
+        }
 
         return S3Client.builder()
                 .region(Region.of(region))
