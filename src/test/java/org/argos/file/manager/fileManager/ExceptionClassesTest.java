@@ -3,6 +3,7 @@ package org.argos.file.manager.fileManager;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,9 +84,12 @@ class ExceptionClassesTest {
             mockedFiles.when(() -> Files.walk(mockDirectory)).thenThrow(IOException.class);
 
             FileProcessor fileProcessor = FileProcessor.getInstance();
-            NotFoundError thrown = assertThrows(NotFoundError.class, () -> {
-                fileProcessor.getFilesFromDirectory(mockDirectory);
-            });
+            NotFoundError thrown =
+                    assertThrows(
+                            NotFoundError.class,
+                            () -> {
+                                fileProcessor.getFilesFromDirectory(mockDirectory);
+                            });
 
             assertEquals("Failed to read files from directory: null", thrown.getMessage());
         }

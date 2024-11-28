@@ -24,8 +24,6 @@ public class S3KeyGenerator {
     public static String generateKey(String projectId, Path directory, Path file) {
         return String.format(
                 "projects/%s/%s",
-                projectId,
-                directory.relativize(file).toString().replace("\\", "/")
-        );
+                projectId, directory.relativize(file).toString().replace("\\", "/"));
     }
 }

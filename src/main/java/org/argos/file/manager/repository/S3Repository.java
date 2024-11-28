@@ -61,7 +61,8 @@ public class S3Repository implements IStorageRepository {
      * @param files the list of files to upload.
      * @param result a map to store upload results.
      */
-    private void uploadFiles(String projectId, Path directory, List<Path> files, Map<String, String> result) {
+    private void uploadFiles(
+            String projectId, Path directory, List<Path> files, Map<String, String> result) {
         for (Path file : files) {
             uploadSingleFile(projectId, directory, file, result);
         }
@@ -75,16 +76,17 @@ public class S3Repository implements IStorageRepository {
      * @param file the file to upload.
      * @param result a map to store upload results.
      */
-    private void uploadSingleFile(String projectId, Path directory, Path file, Map<String, String> result) {
+    private void uploadSingleFile(
+            String projectId, Path directory, Path file, Map<String, String> result) {
         String key = S3KeyGenerator.generateKey(projectId, directory, file);
         try {
             s3Client.putObject(
                     PutObjectRequest.builder().bucket(bucketName).key(key).build(),
-                    RequestBody.fromFile(file)
-            );
+                    RequestBody.fromFile(file));
             result.put(key, "Uploaded");
         } catch (S3Exception e) {
-            throw new BadRequestError("Failed to upload files to S3: " + e.awsErrorDetails().errorMessage());
+            throw new BadRequestError(
+                    "Failed to upload files to S3: " + e.awsErrorDetails().errorMessage());
         }
     }
 
@@ -110,9 +112,10 @@ public class S3Repository implements IStorageRepository {
 
             return response.contents().stream().map(S3Object::key).toList();
         } catch (S3Exception e) {
-            String errorMessage = e.awsErrorDetails() != null
-                    ? e.awsErrorDetails().errorMessage()
-                    : "Error occurred";
+            String errorMessage =
+                    e.awsErrorDetails() != null
+                            ? e.awsErrorDetails().errorMessage()
+                            : "Error occurred";
 
             throw new BadRequestError("Failed to list files: " + errorMessage);
         }
@@ -133,12 +136,14 @@ public class S3Repository implements IStorageRepository {
         String key = String.format("projects/%s/%s", projectId, filePath);
 
         try {
-            GetObjectRequest request = GetObjectRequest.builder().bucket(bucketName).key(key).build();
+            GetObjectRequest request =
+                    GetObjectRequest.builder().bucket(bucketName).key(key).build();
             return s3Client.getObjectAsBytes(request).asUtf8String();
         } catch (NoSuchKeyException e) {
             throw new NotFoundError("File not found: " + filePath);
         } catch (S3Exception e) {
-            throw new BadRequestError("Failed to retrieve file: " + e.awsErrorDetails().errorMessage());
+            throw new BadRequestError(
+                    "Failed to retrieve file: " + e.awsErrorDetails().errorMessage());
         } catch (Exception e) {
             throw new BadRequestError("Error reading file content: " + e.getMessage());
         }

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/fileManager")
 @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8081"})
-
 @AllArgsConstructor
 public class FileManagerController {
 

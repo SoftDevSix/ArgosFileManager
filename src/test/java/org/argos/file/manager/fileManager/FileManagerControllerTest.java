@@ -54,7 +54,10 @@ class FileManagerControllerTest {
         String fileContent = "This is a test file.";
         when(s3FileService.getFileContent(projectId, filePath)).thenReturn(fileContent);
 
-        mockMvc.perform(get("/fileManager/file").param("projectId", projectId).param("filePath", filePath))
+        mockMvc.perform(
+                        get("/fileManager/file")
+                                .param("projectId", projectId)
+                                .param("filePath", filePath))
                 .andExpect(status().isOk())
                 .andExpect(content().string(fileContent));
 

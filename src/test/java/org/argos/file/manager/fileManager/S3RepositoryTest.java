@@ -110,7 +110,6 @@ class S3RepositoryTest {
         verify(s3Client, times(1)).getObjectAsBytes(any(GetObjectRequest.class));
     }
 
-
     /**
      * Test upload failure due to an exception thrown by S3.
      */
@@ -187,7 +186,6 @@ class S3RepositoryTest {
         verify(s3Client, times(1)).getObjectAsBytes(any(GetObjectRequest.class));
     }
 
-
     /**
      * Test to receive Bad Request Exception Response
      */
@@ -236,6 +234,4 @@ class S3RepositoryTest {
         assertTrue(exception.getMessage().contains("Error reading file content"));
         verify(s3Client, times(1)).getObjectAsBytes(any(GetObjectRequest.class));
     }
-
-
 }
