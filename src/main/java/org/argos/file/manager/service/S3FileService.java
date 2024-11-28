@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
 import org.argos.file.manager.repository.IStorageRepository;
 import org.springframework.stereotype.Service;
 
@@ -11,19 +12,11 @@ import org.springframework.stereotype.Service;
  * Service layer for AWS S3 file operations.
  * This service provides methods to upload a directory, list files in a project, and retrieve file content from an S3 bucket.
  */
+@AllArgsConstructor
 @Service
 public class S3FileService {
 
     private final IStorageRepository storageRepository;
-
-    /**
-     * Constructs a new S3FileService with the given storage repository.
-     *
-     * @param storageRepository the repository for interacting with the S3 storage.
-     */
-    public S3FileService(IStorageRepository storageRepository) {
-        this.storageRepository = storageRepository;
-    }
 
     /**
      * Uploads a directory to the S3 bucket and generates a new project ID.
