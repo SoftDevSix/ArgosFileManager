@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ArgosFileManagerApplication {
 
-    @SuppressWarnings("java:S1186") // Ignorar advertencia de método vacío
+    @SuppressWarnings("java:S1186")
     public static void main(String[] args) {
         SpringApplication.run(ArgosFileManagerApplication.class, args);
     }

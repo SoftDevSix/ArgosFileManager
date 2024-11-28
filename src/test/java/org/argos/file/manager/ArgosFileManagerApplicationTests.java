@@ -10,8 +10,7 @@ class ArgosFileManagerApplicationTests {
 
     @Test
     void contextLoads() {
-        // Este método está vacío intencionadamente.
-        // Se utiliza para verificar que el contexto de la aplicación se carga correctamente.
+        // Necessary Comment to avoid sonar Issues.
     }
 
     @Test
