@@ -1,5 +1,11 @@
 package org.argos.file.manager.fileManager;
 
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.List;
+import java.util.Map;
 import org.argos.file.manager.controller.FileManagerController;
 import org.argos.file.manager.service.S3FileService;
 import org.junit.jupiter.api.Test;
@@ -7,12 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
-import java.util.List;
-import java.util.Map;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 
 /**
  * Unit tests for the {@link FileManagerController}.
@@ -23,11 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(FileManagerController.class)
 class FileManagerControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockBean
-    private S3FileService s3FileService;
+    @MockBean private S3FileService s3FileService;
 
     /**
      * Tests the endpoint for listing files for a specific project.
@@ -56,9 +54,7 @@ class FileManagerControllerTest {
         String fileContent = "This is a test file.";
         when(s3FileService.getFileContent(projectId, filePath)).thenReturn(fileContent);
 
-        mockMvc.perform(get("/api/file")
-                        .param("projectId", projectId)
-                        .param("filePath", filePath))
+        mockMvc.perform(get("/api/file").param("projectId", projectId).param("filePath", filePath))
                 .andExpect(status().isOk())
                 .andExpect(content().string(fileContent));
 
@@ -71,23 +67,29 @@ class FileManagerControllerTest {
     @Test
     void testUploadDirectory() throws Exception {
         String generatedProjectId = "generated-project-id";
-        Map<String, String> uploadResult = Map.of(
-                "projectFiles/subdirectory/subClass1.java", "Uploaded",
-                "projectFiles/sec/classDirSec.java", "Uploaded",
-                "projectFiles/directoryFirst/class1.java", "Uploaded"
-        );
+        Map<String, String> uploadResult =
+                Map.of(
+                        "projectFiles/subdirectory/subClass1.java", "Uploaded",
+                        "projectFiles/sec/classDirSec.java", "Uploaded",
+                        "projectFiles/directoryFirst/class1.java", "Uploaded");
         when(s3FileService.uploadDirectory("test/"))
-                .thenReturn(Map.of(
-                        "projectId", generatedProjectId,
-                        "uploadResults", uploadResult
-                ));
+                .thenReturn(
+                        Map.of(
+                                "projectId", generatedProjectId,
+                                "uploadResults", uploadResult));
 
         mockMvc.perform(post("/api/upload").param("localDir", "test/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.projectId").value(generatedProjectId))
-                .andExpect(jsonPath("$.uploadResults['projectFiles/subdirectory/subClass1.java']").value("Uploaded"))
-                .andExpect(jsonPath("$.uploadResults['projectFiles/sec/classDirSec.java']").value("Uploaded"))
-                .andExpect(jsonPath("$.uploadResults['projectFiles/directoryFirst/class1.java']").value("Uploaded"));
+                .andExpect(
+                        jsonPath("$.uploadResults['projectFiles/subdirectory/subClass1.java']")
+                                .value("Uploaded"))
+                .andExpect(
+                        jsonPath("$.uploadResults['projectFiles/sec/classDirSec.java']")
+                                .value("Uploaded"))
+                .andExpect(
+                        jsonPath("$.uploadResults['projectFiles/directoryFirst/class1.java']")
+                                .value("Uploaded"));
 
         verify(s3FileService, times(1)).uploadDirectory("test/");
     }

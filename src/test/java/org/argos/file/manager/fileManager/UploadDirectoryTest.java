@@ -1,19 +1,20 @@
 package org.argos.file.manager.fileManager;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.Map;
 import org.argos.file.manager.exceptions.BadRequestError;
 import org.argos.file.manager.repository.S3Repository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.core.sync.RequestBody;
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.Map;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for the {@link S3Repository#uploadDirectory(String, String)} method.
@@ -53,7 +54,8 @@ class UploadDirectoryTest {
         assertEquals(2, result.size());
         assertTrue(result.containsKey("projects/testProject/file1.txt"));
         assertTrue(result.containsKey("projects/testProject/file2.txt"));
-        verify(mockS3Client, times(2)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+        verify(mockS3Client, times(2))
+                .putObject(any(PutObjectRequest.class), any(RequestBody.class));
 
         Files.deleteIfExists(file1);
         Files.deleteIfExists(file2);
@@ -69,8 +71,10 @@ class UploadDirectoryTest {
         String projectId = null;
         String localDir = "/tmp";
 
-        BadRequestError exception = assertThrows(BadRequestError.class,
-                () -> s3Repository.uploadDirectory(projectId, localDir));
+        BadRequestError exception =
+                assertThrows(
+                        BadRequestError.class,
+                        () -> s3Repository.uploadDirectory(projectId, localDir));
         assertEquals("Project ID cannot be null or empty.", exception.getMessage());
     }
 
@@ -83,8 +87,10 @@ class UploadDirectoryTest {
         String projectId = "   ";
         String localDir = "/tmp";
 
-        BadRequestError exception = assertThrows(BadRequestError.class,
-                () -> s3Repository.uploadDirectory(projectId, localDir));
+        BadRequestError exception =
+                assertThrows(
+                        BadRequestError.class,
+                        () -> s3Repository.uploadDirectory(projectId, localDir));
         assertEquals("Project ID cannot be null or empty.", exception.getMessage());
     }
 
@@ -97,8 +103,10 @@ class UploadDirectoryTest {
         String projectId = "testProject";
         String localDir = "/invalidDir";
 
-        BadRequestError exception = assertThrows(BadRequestError.class,
-                () -> s3Repository.uploadDirectory(projectId, localDir));
+        BadRequestError exception =
+                assertThrows(
+                        BadRequestError.class,
+                        () -> s3Repository.uploadDirectory(projectId, localDir));
         assertTrue(exception.getMessage().contains("Invalid local directory:"));
     }
 
@@ -114,7 +122,9 @@ class UploadDirectoryTest {
         Path emptyDir = Files.createTempDirectory("emptyDir");
 
         try {
-            assertThrowsExactly(BadRequestError.class, (() -> uploadDirectoryAndThrow(projectId, emptyDir.toString())));
+            assertThrowsExactly(
+                    BadRequestError.class,
+                    (() -> uploadDirectoryAndThrow(projectId, emptyDir.toString())));
         } finally {
             Files.deleteIfExists(emptyDir);
         }
@@ -144,9 +154,13 @@ class UploadDirectoryTest {
         try (MockedStatic<Files> mockedFiles = Mockito.mockStatic(Files.class)) {
             mockedFiles.when(() -> Files.exists(directory)).thenReturn(true);
             mockedFiles.when(() -> Files.isDirectory(directory)).thenReturn(true);
-            mockedFiles.when(() -> Files.walk(directory)).thenThrow(new IOException("Simulated IO error"));
+            mockedFiles
+                    .when(() -> Files.walk(directory))
+                    .thenThrow(new IOException("Simulated IO error"));
 
-            assertThrowsExactly(BadRequestError.class, (() -> uploadDirectoryAndThrow(projectId, directory.toString())));
+            assertThrowsExactly(
+                    BadRequestError.class,
+                    (() -> uploadDirectoryAndThrow(projectId, directory.toString())));
         }
     }
 }

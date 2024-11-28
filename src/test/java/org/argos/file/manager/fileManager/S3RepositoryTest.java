@@ -1,9 +1,17 @@
 package org.argos.file.manager.fileManager;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Map;
 import org.argos.file.manager.exceptions.BadRequestError;
 import org.argos.file.manager.exceptions.InternalServerError;
-import org.argos.file.manager.repository.S3Repository;
 import org.argos.file.manager.exceptions.NotFoundError;
+import org.argos.file.manager.repository.S3Repository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -14,22 +22,13 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Map;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 
 /**
  * Unit tests for the {@link S3Repository}.
  */
 class S3RepositoryTest {
 
-    @Mock
-    private S3Client s3Client;
+    @Mock private S3Client s3Client;
 
     private S3Repository s3Repository;
 
@@ -45,12 +44,12 @@ class S3RepositoryTest {
     @Test
     void testListFiles_EmptyBucket() {
         String projectId = "test-project-id";
-        ListObjectsV2Response response = ListObjectsV2Response.builder()
-                .contents(Collections.emptyList())
-                .build();
+        ListObjectsV2Response response =
+                ListObjectsV2Response.builder().contents(Collections.emptyList()).build();
         when(s3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(response);
 
-        Exception exception = assertThrows(NotFoundError.class, () -> s3Repository.listFiles(projectId));
+        Exception exception =
+                assertThrows(NotFoundError.class, () -> s3Repository.listFiles(projectId));
         assertEquals("No files found for project ID: test-project-id", exception.getMessage());
         verify(s3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
     }
@@ -65,10 +64,14 @@ class S3RepositoryTest {
         Path tempFile = Files.createTempFile(tempDir, "testFile", ".txt");
         Files.writeString(tempFile, "Sample content");
 
-        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenReturn(mock(PutObjectResponse.class));
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(mock(PutObjectResponse.class));
 
         Map<String, String> result = s3Repository.uploadDirectory(projectId, tempDir.toString());
-        String expectedKey = String.format("projects/%s/%s", projectId, tempDir.relativize(tempFile).toString().replace("\\", "/"));
+        String expectedKey =
+                String.format(
+                        "projects/%s/%s",
+                        projectId, tempDir.relativize(tempFile).toString().replace("\\", "/"));
         assertTrue(result.containsKey(expectedKey));
         assertEquals("Uploaded", result.get(expectedKey));
 
@@ -88,12 +91,11 @@ class S3RepositoryTest {
         String fileContent = "This is a test file.";
         String key = String.format("projects/%s/%s", projectId, filePath);
 
-        GetObjectRequest expectedRequest = GetObjectRequest.builder()
-                .bucket("group8-image-uploader-s3")
-                .key(key)
-                .build();
+        GetObjectRequest expectedRequest =
+                GetObjectRequest.builder().bucket("group8-image-uploader-s3").key(key).build();
 
-        ResponseInputStream<GetObjectResponse> mockResponseInputStream = mock(ResponseInputStream.class);
+        ResponseInputStream<GetObjectResponse> mockResponseInputStream =
+                mock(ResponseInputStream.class);
 
         try {
             when(mockResponseInputStream.readAllBytes()).thenReturn(fileContent.getBytes());
@@ -102,12 +104,13 @@ class S3RepositoryTest {
         }
 
         when(s3Client.getObject(any(GetObjectRequest.class)))
-                .thenAnswer(invocation -> {
-                    GetObjectRequest actualRequest = invocation.getArgument(0);
-                    assertEquals(expectedRequest.bucket(), actualRequest.bucket());
-                    assertEquals(expectedRequest.key(), actualRequest.key());
-                    return mockResponseInputStream;
-                });
+                .thenAnswer(
+                        invocation -> {
+                            GetObjectRequest actualRequest = invocation.getArgument(0);
+                            assertEquals(expectedRequest.bucket(), actualRequest.bucket());
+                            assertEquals(expectedRequest.key(), actualRequest.key());
+                            return mockResponseInputStream;
+                        });
 
         String result = s3Repository.getFileContent(projectId, filePath);
 
@@ -125,19 +128,16 @@ class S3RepositoryTest {
         Path tempFile = Files.createTempFile(tempDir, "testFile", ".txt");
         Files.writeString(tempFile, "Sample content");
 
-        AwsErrorDetails mockErrorDetails = AwsErrorDetails.builder()
-                .errorMessage("Upload error")
-                .build();
-        AwsServiceException mockS3Exception = S3Exception.builder()
-                .awsErrorDetails(mockErrorDetails)
-                .build();
+        AwsErrorDetails mockErrorDetails =
+                AwsErrorDetails.builder().errorMessage("Upload error").build();
+        AwsServiceException mockS3Exception =
+                S3Exception.builder().awsErrorDetails(mockErrorDetails).build();
 
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenThrow(mockS3Exception);
 
-        BadRequestError exception = assertThrows(BadRequestError.class, () ->
-                uploadToS3(projectId, tempDir)
-        );
+        BadRequestError exception =
+                assertThrows(BadRequestError.class, () -> uploadToS3(projectId, tempDir));
 
         assertEquals("Failed to upload files to S3: Upload error", exception.getMessage());
         verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
@@ -157,7 +157,6 @@ class S3RepositoryTest {
         s3Repository.uploadDirectory(projectId, directoryPath.toString());
     }
 
-
     /**
      * Test listing files failure due to an S3 exception.
      */
@@ -165,27 +164,19 @@ class S3RepositoryTest {
     void testListFiles_ThrowsInternalServerError() {
         String projectId = "test-project-id";
 
-        AwsErrorDetails errorDetails = AwsErrorDetails.builder()
-                .errorMessage("List error")
-                .build();
+        AwsErrorDetails errorDetails = AwsErrorDetails.builder().errorMessage("List error").build();
 
-        AwsServiceException mockS3Exception = S3Exception.builder()
-                .awsErrorDetails(errorDetails)
-                .build();
+        AwsServiceException mockS3Exception =
+                S3Exception.builder().awsErrorDetails(errorDetails).build();
 
-        when(s3Client.listObjectsV2(any(ListObjectsV2Request.class)))
-                .thenThrow(mockS3Exception);
+        when(s3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenThrow(mockS3Exception);
 
-        InternalServerError exception = assertThrows(
-                InternalServerError.class,
-                () -> s3Repository.listFiles(projectId)
-        );
+        InternalServerError exception =
+                assertThrows(InternalServerError.class, () -> s3Repository.listFiles(projectId));
 
         assertEquals("Failed to list files: List error", exception.getMessage());
         verify(s3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
     }
-
-
 
     /**
      * Test retrieving file content failure due to a missing file.
@@ -198,7 +189,10 @@ class S3RepositoryTest {
         when(s3Client.getObject(any(GetObjectRequest.class)))
                 .thenThrow(NoSuchKeyException.builder().message("File not found").build());
 
-        Exception exception = assertThrows(NotFoundError.class, () -> s3Repository.getFileContent(projectId, filePath));
+        Exception exception =
+                assertThrows(
+                        NotFoundError.class,
+                        () -> s3Repository.getFileContent(projectId, filePath));
         assertEquals("File not found: missingFile.txt", exception.getMessage());
 
         verify(s3Client, times(1)).getObject(any(GetObjectRequest.class));
@@ -211,9 +205,9 @@ class S3RepositoryTest {
     void testGetFileContent_EmptyProjectId_ThrowsBadRequestError() {
         String filePath = "test-file.txt";
 
-        Exception exception = assertThrows(BadRequestError.class, () ->
-                s3Repository.getFileContent("", filePath)
-        );
+        Exception exception =
+                assertThrows(
+                        BadRequestError.class, () -> s3Repository.getFileContent("", filePath));
         assertEquals("Project ID and file path cannot be null or empty.", exception.getMessage());
     }
 
@@ -224,12 +218,11 @@ class S3RepositoryTest {
     void testGetFileContent_EmptyFilePath_ThrowsBadRequestError() {
         String projectId = "test-project-id";
 
-        Exception exception = assertThrows(BadRequestError.class, () ->
-                s3Repository.getFileContent(projectId, "")
-        );
+        Exception exception =
+                assertThrows(
+                        BadRequestError.class, () -> s3Repository.getFileContent(projectId, ""));
         assertEquals("Project ID and file path cannot be null or empty.", exception.getMessage());
     }
-
 
     /**
      * Test to receive An error file reading type
@@ -239,14 +232,16 @@ class S3RepositoryTest {
         String projectId = "test-project-id";
         String filePath = "test-file.txt";
 
-        ResponseInputStream<GetObjectResponse> mockResponseInputStream = mock(ResponseInputStream.class);
+        ResponseInputStream<GetObjectResponse> mockResponseInputStream =
+                mock(ResponseInputStream.class);
         when(mockResponseInputStream.readAllBytes()).thenThrow(new IOException("Read error"));
 
         when(s3Client.getObject(any(GetObjectRequest.class))).thenReturn(mockResponseInputStream);
 
-        Exception exception = assertThrows(BadRequestError.class, () ->
-                s3Repository.getFileContent(projectId, filePath)
-        );
+        Exception exception =
+                assertThrows(
+                        BadRequestError.class,
+                        () -> s3Repository.getFileContent(projectId, filePath));
         assertTrue(exception.getMessage().contains("Error reading file content"));
     }
 }

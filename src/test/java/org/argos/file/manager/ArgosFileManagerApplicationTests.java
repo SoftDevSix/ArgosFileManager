@@ -1,9 +1,9 @@
 package org.argos.file.manager;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @SpringBootTest
 class ArgosFileManagerApplicationTests {
@@ -16,8 +16,8 @@ class ArgosFileManagerApplicationTests {
 
     @Test
     void testMain() {
-        assertDoesNotThrow(() -> ArgosFileManagerApplication.main(new String[]{}),
+        assertDoesNotThrow(
+                () -> ArgosFileManagerApplication.main(new String[] {}),
                 "Application should start without throwing exceptions");
     }
 }
-

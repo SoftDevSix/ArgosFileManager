@@ -1,6 +1,11 @@
 package org.argos.file.manager.repository;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.*;
+import java.util.stream.Stream;
 import org.argos.file.manager.exceptions.BadRequestError;
 import org.argos.file.manager.exceptions.InternalServerError;
 import org.argos.file.manager.exceptions.NotFoundError;
@@ -8,11 +13,6 @@ import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
-import java.util.*;
-import java.nio.file.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.stream.Stream;
 
 /**
  * Repository implementation for interacting with AWS S3.
@@ -64,23 +64,22 @@ public class S3Repository implements IStorageRepository {
             }
 
             for (Path file : files) {
-                String key = String.format("projects/%s/%s",
-                        projectId,
-                        directory.relativize(file).toString().replace("\\", "/"));
+                String key =
+                        String.format(
+                                "projects/%s/%s",
+                                projectId,
+                                directory.relativize(file).toString().replace("\\", "/"));
 
                 s3Client.putObject(
-                        PutObjectRequest.builder()
-                                .bucket(bucketName)
-                                .key(key)
-                                .build(),
-                        RequestBody.fromFile(file)
-                );
+                        PutObjectRequest.builder().bucket(bucketName).key(key).build(),
+                        RequestBody.fromFile(file));
                 result.put(key, "Uploaded");
             }
         } catch (IOException e) {
             throw new NotFoundError("Failed to read files from directory: " + e.getMessage());
         } catch (S3Exception e) {
-            throw new BadRequestError("Failed to upload files to S3: " + e.awsErrorDetails().errorMessage());
+            throw new BadRequestError(
+                    "Failed to upload files to S3: " + e.awsErrorDetails().errorMessage());
         }
         return result;
     }
@@ -100,10 +99,8 @@ public class S3Repository implements IStorageRepository {
         String prefix = String.format("projects/%s/", projectId);
 
         try {
-            ListObjectsV2Request request = ListObjectsV2Request.builder()
-                    .bucket(bucketName)
-                    .prefix(prefix)
-                    .build();
+            ListObjectsV2Request request =
+                    ListObjectsV2Request.builder().bucket(bucketName).prefix(prefix).build();
 
             ListObjectsV2Response response = s3Client.listObjectsV2(request);
 
@@ -111,19 +108,16 @@ public class S3Repository implements IStorageRepository {
                 throw new NotFoundError("No files found for project ID: " + projectId);
             }
 
-            return response.contents()
-                    .stream()
-                    .map(S3Object::key)
-                    .toList();
+            return response.contents().stream().map(S3Object::key).toList();
         } catch (S3Exception e) {
-            String errorMessage = e.awsErrorDetails() != null
-                    ? e.awsErrorDetails().errorMessage()
-                    : "Unknown error occurred";
+            String errorMessage =
+                    e.awsErrorDetails() != null
+                            ? e.awsErrorDetails().errorMessage()
+                            : "Unknown error occurred";
 
             throw new InternalServerError("Failed to list files: " + errorMessage);
         }
     }
-
 
     /**
      * Retrieves the content of a specific file stored in the S3 bucket for a given project.
@@ -141,10 +135,8 @@ public class S3Repository implements IStorageRepository {
         String key = String.format("projects/%s/%s", projectId, filePath);
 
         try {
-            GetObjectRequest request = GetObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(key)
-                    .build();
+            GetObjectRequest request =
+                    GetObjectRequest.builder().bucket(bucketName).key(key).build();
 
             try (InputStream inputStream = s3Client.getObject(request)) {
                 return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
@@ -152,7 +144,8 @@ public class S3Repository implements IStorageRepository {
         } catch (NoSuchKeyException e) {
             throw new NotFoundError("File not found: " + filePath);
         } catch (S3Exception e) {
-            throw new BadRequestError("Failed to retrieve file: " + e.awsErrorDetails().errorMessage());
+            throw new BadRequestError(
+                    "Failed to retrieve file: " + e.awsErrorDetails().errorMessage());
         } catch (IOException e) {
             throw new BadRequestError("Error reading file content: " + e.getMessage());
         }

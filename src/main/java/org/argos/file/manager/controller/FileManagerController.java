@@ -1,10 +1,10 @@
 package org.argos.file.manager.controller;
 
+import java.util.List;
+import java.util.Map;
 import org.argos.file.manager.service.S3FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import java.util.Map;
 
 /**
  * REST Controller for managing files in AWS S3.

@@ -31,9 +31,7 @@ public class S3Config {
                 .region(Region.of(region))
                 .credentialsProvider(
                         StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create(accessKeyId, secretAccessKey)
-                        )
-                )
+                                AwsBasicCredentials.create(accessKeyId, secretAccessKey)))
                 .build();
     }
 }

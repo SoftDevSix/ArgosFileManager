@@ -1,15 +1,15 @@
 package org.argos.file.manager.fileManager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.Map;
 import org.argos.file.manager.exceptions.ApiException;
 import org.argos.file.manager.exceptions.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
-import java.util.Map;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 
 class ExceptionClassesTest {
 
@@ -28,7 +28,8 @@ class ExceptionClassesTest {
     void handleApiException_ShouldReturnCorrectResponse() {
         ApiException apiException = new CustomApiException("Custom API error", 400);
 
-        ResponseEntity<Map<String, Object>> response = exceptionHandler.handleApiException(apiException);
+        ResponseEntity<Map<String, Object>> response =
+                exceptionHandler.handleApiException(apiException);
 
         assertNotNull(response);
         assertEquals(400, response.getStatusCode().value());
@@ -46,7 +47,8 @@ class ExceptionClassesTest {
     void handleGeneralException_ShouldReturnInternalServerErrorResponse() {
         Exception generalException = new Exception("General error occurred");
 
-        ResponseEntity<Map<String, Object>> response = exceptionHandler.handleGeneralException(generalException);
+        ResponseEntity<Map<String, Object>> response =
+                exceptionHandler.handleGeneralException(generalException);
 
         assertNotNull(response);
         assertEquals(500, response.getStatusCode().value());

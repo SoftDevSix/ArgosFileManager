@@ -1,15 +1,16 @@
 package org.argos.file.manager.fileManager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+
+import java.util.List;
+import java.util.Map;
 import org.argos.file.manager.repository.IStorageRepository;
 import org.argos.file.manager.service.S3FileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import java.util.List;
-import java.util.Map;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 
 /**
  * Test suite for the FileManagerService class.
@@ -38,10 +39,10 @@ class FileManagerServiceTest {
     @Test
     void testUploadDirectory() {
         String localDir = "test-directory";
-        Map<String, String> uploadResults = Map.of(
-                "file1.txt", "Uploaded",
-                "file2.txt", "Uploaded"
-        );
+        Map<String, String> uploadResults =
+                Map.of(
+                        "file1.txt", "Uploaded",
+                        "file2.txt", "Uploaded");
 
         Mockito.when(storageRepository.uploadDirectory(any(String.class), eq(localDir)))
                 .thenReturn(uploadResults);
@@ -83,8 +84,7 @@ class FileManagerServiceTest {
         String filePath = "file1.txt";
         String fileContent = "This is the content of the file.";
 
-        Mockito.when(storageRepository.getFileContent(projectId, filePath))
-                .thenReturn(fileContent);
+        Mockito.when(storageRepository.getFileContent(projectId, filePath)).thenReturn(fileContent);
 
         String result = s3FileService.getFileContent(projectId, filePath);
 

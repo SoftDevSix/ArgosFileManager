@@ -11,4 +11,3 @@ public class ArgosFileManagerApplication {
         SpringApplication.run(ArgosFileManagerApplication.class, args);
     }
 }
-
