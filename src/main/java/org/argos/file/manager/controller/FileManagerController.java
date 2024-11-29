@@ -25,6 +25,7 @@ public class FileManagerController {
      * @return a map containing the generated project ID and uploaded file statuses.
      */
     @PostMapping("/upload")
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8081"})
     public Map<String, Object> uploadDirectory(@RequestParam String localDir) {
         return s3FileService.uploadDirectory(localDir);
     }
@@ -36,6 +37,7 @@ public class FileManagerController {
      * @return a list of file keys in the S3 bucket for the given project.
      */
     @GetMapping("/files")
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8081"})
     public List<String> listFiles(@RequestParam String projectId) {
         return s3FileService.listFiles(projectId);
     }
@@ -48,6 +50,7 @@ public class FileManagerController {
      * @return the content of the file as a string.
      */
     @GetMapping("/file")
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8081"})
     public String getFile(@RequestParam String projectId, @RequestParam String filePath) {
         return s3FileService.getFileContent(projectId, filePath);
     }
@@ -55,14 +58,13 @@ public class FileManagerController {
     /**
      * Uploads a ZIP file to the S3 bucket, extracts its contents, and organizes them under a new project ID.
      *
-     * @param projectId the ID of the project.
      * @param file      the uploaded ZIP file.
      * @return a map containing the generated project ID and uploaded file statuses.
      */
     @PostMapping("/uploadZip")
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8081"})
     public Map<String, Object> uploadZipFile(
-            @RequestParam String projectId,
             @RequestParam MultipartFile file) {
-        return s3FileService.uploadZipFile(projectId, file);
+        return s3FileService.uploadZipFile(file);
     }
 }

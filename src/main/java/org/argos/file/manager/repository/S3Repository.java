@@ -51,7 +51,6 @@ public class S3Repository implements IStorageRepository {
             Path tempZipPath = tempDir.resolve(zipFile.getOriginalFilename());
 
             Files.write(tempZipPath, zipFile.getBytes());
-
             FileProcessor.getInstance().extractZip(tempZipPath, tempDir);
         } catch (IOException e) {
             throw new BadRequestError("Failed to process ZIP file: " + e.getMessage());
@@ -59,17 +58,18 @@ public class S3Repository implements IStorageRepository {
 
         List<Path> files = FileProcessor.getInstance().getFilesFromDirectory(tempDir);
         FileProcessor.getInstance().validateFilesExist(files);
-        Map<String, String> result = new HashMap<>();
-        uploadFiles(projectId, tempDir, files, result);
 
+        Map<String, String> uploadResults = new HashMap<>();
+        uploadFiles(projectId, tempDir, files, uploadResults);
         try {
             FileProcessor.getInstance().deleteDirectory(tempDir);
         } catch (IOException e) {
             throw new BadRequestError("Failed to clean up temporary files: " + e.getMessage());
         }
 
-        return result;
+        return uploadResults;
     }
+
 
     /**
      * Uploads all files from a local directory to the S3 bucket under a specific project.
