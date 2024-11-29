@@ -1,5 +1,6 @@
 package org.argos.file.manager.repository;
 
+import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 import org.argos.file.manager.exceptions.BadRequestError;
@@ -8,6 +9,7 @@ import org.argos.file.manager.utils.FileProcessor;
 import org.argos.file.manager.utils.InputValidator;
 import org.argos.file.manager.utils.S3KeyGenerator;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
@@ -31,6 +33,42 @@ public class S3Repository implements IStorageRepository {
     public S3Repository(S3Client s3Client) {
         this.s3Client = s3Client;
         this.bucketName = System.getenv("AWS_BUCKET_NAME");
+    }
+
+
+
+    @Override
+    public Map<String, String> uploadMultiPartDirectory(String projectId, MultipartFile zipFile) {
+        InputValidator.getInstance().validateProjectId(projectId);
+
+        if (zipFile == null || zipFile.isEmpty()) {
+            throw new BadRequestError("Uploaded ZIP file is null or empty.");
+        }
+
+        Path tempDir;
+        try {
+            tempDir = Files.createTempDirectory("unpacked-zip");
+            Path tempZipPath = tempDir.resolve(zipFile.getOriginalFilename());
+
+            Files.write(tempZipPath, zipFile.getBytes());
+
+            FileProcessor.getInstance().extractZip(tempZipPath, tempDir);
+        } catch (IOException e) {
+            throw new BadRequestError("Failed to process ZIP file: " + e.getMessage());
+        }
+
+        List<Path> files = FileProcessor.getInstance().getFilesFromDirectory(tempDir);
+        FileProcessor.getInstance().validateFilesExist(files);
+        Map<String, String> result = new HashMap<>();
+        uploadFiles(projectId, tempDir, files, result);
+
+        try {
+            FileProcessor.getInstance().deleteDirectory(tempDir);
+        } catch (IOException e) {
+            throw new BadRequestError("Failed to clean up temporary files: " + e.getMessage());
+        }
+
+        return result;
     }
 
     /**

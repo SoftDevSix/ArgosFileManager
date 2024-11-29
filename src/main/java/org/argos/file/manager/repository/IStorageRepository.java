@@ -1,5 +1,7 @@
 package org.argos.file.manager.repository;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +18,15 @@ public interface IStorageRepository {
      * @return a map containing the uploaded file keys and their statuses.
      */
     Map<String, String> uploadDirectory(String projectId, String localDir);
+
+    /**
+     * Uploads a ZIP file to the storage bucket and unpacks it, preserving directory structure.
+     *
+     * @param projectId the ID of the project.
+     * @param zipFilePath the path to the ZIP file.
+     * @return a map containing the file keys and their upload statuses.
+     */
+    Map<String, String> uploadMultiPartDirectory(String projectId, MultipartFile zipFilePath);
 
     /**
      * Lists all files in the storage bucket for a specific project.

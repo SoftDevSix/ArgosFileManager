@@ -5,6 +5,7 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.argos.file.manager.service.S3FileService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * REST Controller for managing files in AWS S3.
@@ -49,5 +50,19 @@ public class FileManagerController {
     @GetMapping("/file")
     public String getFile(@RequestParam String projectId, @RequestParam String filePath) {
         return s3FileService.getFileContent(projectId, filePath);
+    }
+
+    /**
+     * Uploads a ZIP file to the S3 bucket, extracts its contents, and organizes them under a new project ID.
+     *
+     * @param projectId the ID of the project.
+     * @param file      the uploaded ZIP file.
+     * @return a map containing the generated project ID and uploaded file statuses.
+     */
+    @PostMapping("/uploadZip")
+    public Map<String, Object> uploadZipFile(
+            @RequestParam String projectId,
+            @RequestParam MultipartFile file) {
+        return s3FileService.uploadZipFile(projectId, file);
     }
 }
