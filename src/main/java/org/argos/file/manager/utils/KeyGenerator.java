@@ -3,23 +3,23 @@ package org.argos.file.manager.utils;
 import java.nio.file.Path;
 
 /**
- * Utility class for generating S3 object keys.
+ * Utility class for generating object keys.
  * This class cannot be instantiated as it contains only static methods.
  */
-public class S3KeyGenerator {
+public class KeyGenerator {
 
     /**
      * Private constructor to prevent instantiation.
      */
-    private S3KeyGenerator() {}
+    private KeyGenerator() {}
 
     /**
-     * Generates an S3 object key for the given file.
+     * Generates an object key for the given file.
      *
      * @param projectId the unique identifier for the project.
      * @param directory the root directory of the files being uploaded.
      * @param file the file for which the key is generated.
-     * @return the generated S3 object key.
+     * @return the generated object key.
      */
     public static String generateKey(String projectId, Path directory, Path file) {
         return String.format(

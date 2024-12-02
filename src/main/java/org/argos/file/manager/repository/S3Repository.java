@@ -6,7 +6,7 @@ import org.argos.file.manager.exceptions.BadRequestError;
 import org.argos.file.manager.exceptions.NotFoundError;
 import org.argos.file.manager.utils.FileProcessor;
 import org.argos.file.manager.utils.InputValidator;
-import org.argos.file.manager.utils.S3KeyGenerator;
+import org.argos.file.manager.utils.KeyGenerator;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -78,7 +78,7 @@ public class S3Repository implements IStorageRepository {
      */
     private void uploadSingleFile(
             String projectId, Path directory, Path file, Map<String, String> result) {
-        String key = S3KeyGenerator.generateKey(projectId, directory, file);
+        String key = KeyGenerator.generateKey(projectId, directory, file);
         try {
             s3Client.putObject(
                     PutObjectRequest.builder().bucket(bucketName).key(key).build(),
