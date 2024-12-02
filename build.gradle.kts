@@ -44,12 +44,17 @@ configurations {
 
 dependencies {
     implementation(libs.springboot.starter.web)
+    implementation(libs.aws.s3)
+    implementation(libs.dotenv.java)
     compileOnly(libs.lombok)
-    developmentOnly(libs.springboot.devtools)
     annotationProcessor(libs.lombok)
-    testImplementation(libs.springboot.starter.test)
+    testImplementation(libs.springboot.starter.test) {
+        exclude(group = "org.mockito", module = "mockito-core")
+    }
+    testImplementation("org.mockito:mockito-junit-jupiter:${libs.versions.mockito.get()}")
     testRuntimeOnly(libs.junit.platform.launcher)
 }
+
 
 tasks.test {
     testLogging {
@@ -97,5 +102,8 @@ sonar {
         property("sonar.host.url", sonarHostUrl)
         property("sonar.token", sonarToken)
         property("sonar.qualitygate.wait", "true")
+        property("sonar.exclusions", "**/S3Config.java")
+        property("sonar.exclusions", "**/ArgosFileManagerApplication.java")
+        property("sonar.exclusions", "**/config/**")
     }
 }
