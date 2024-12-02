@@ -87,3 +87,34 @@ POST /fileManager/upload?localDir=test/
   "projectId": "e011bad2-0b57-4ed3-a278-29b255d25621"
 }
 ```
+
+
+### 4. Upload ZIP File
+
+#### Request
+- **Method**: `POST`
+- **URL**: `/fileManager/uploadZip`
+
+#### Request Parameters
+- **projectId**: The unique identifier of the project.
+
+#### Request Body
+- **Content Type**: `multipart/form-data`
+- **Form Data**:
+    - **zipFile**: The ZIP file to be uploaded.
+
+#### Response
+- **Status Code**: 204 OK
+- **Body**: A JSON object containing the status of each file in the ZIP after extraction and upload.
+
+#### Example Response
+```json
+{
+  "uploadResults": {
+    "projects/e011bad2-0b57-4ed3-a278-29b255d25621/projectFiles/dirctoryFirst/class1.java": "Uploaded",
+    "projects/e011bad2-0b57-4ed3-a278-29b255d25621/projectFiles/subdirector/subClass1.java": "Uploaded",
+    "projects/e011bad2-0b57-4ed3-a278-29b255d25621/projectFiles/sec/classDirSec.java": "Uploaded"
+  },
+  "projectId": "e011bad2-0b57-4ed3-a278-29b255d25621"
+}
+```
