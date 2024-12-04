@@ -241,8 +241,10 @@ class S3RepositoryTest {
         String projectId = "";
         MultipartFile zipFile = mock(MultipartFile.class);
 
-        BadRequestError exception = assertThrows(BadRequestError.class,
-                () -> s3Repository.uploadMultiPartDirectory(projectId, zipFile));
+        BadRequestError exception =
+                assertThrows(
+                        BadRequestError.class,
+                        () -> s3Repository.uploadMultiPartDirectory(projectId, zipFile));
 
         assertEquals("Project ID cannot be null or empty.", exception.getMessage());
     }

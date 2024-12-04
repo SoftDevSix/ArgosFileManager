@@ -86,12 +86,15 @@ public class FileProcessor {
      */
     @SuppressWarnings("java:S5042")
     public void extractZip(Path zipFilePath, Path targetDir) {
-        try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFilePath))) {
+        try (ZipInputStream zipInputStream =
+                new ZipInputStream(Files.newInputStream(zipFilePath))) {
             ZipEntry entry;
             while ((entry = zipInputStream.getNextEntry()) != null) {
                 Path extractedPath = targetDir.resolve(entry.getName()).normalize();
                 if (!extractedPath.startsWith(targetDir)) {
-                    throw new IOException("Potential directory traversal attempt in ZIP entry: " + entry.getName());
+                    throw new IOException(
+                            "Potential directory traversal attempt in ZIP entry: "
+                                    + entry.getName());
                 }
 
                 if (entry.isDirectory()) {
@@ -106,7 +109,6 @@ public class FileProcessor {
             throw new BadRequestError("Error extracting ZIP file: " + e.getMessage());
         }
     }
-
 
     /**
      * Validates the extracted path to ensure it is within the target directory and not
@@ -130,7 +132,6 @@ public class FileProcessor {
         return resolvedPath;
     }
 
-
     /**
      * Processes the given MultipartFile, creates a temporary directory,
      * and extracts the ZIP contents into it.
@@ -145,7 +146,8 @@ public class FileProcessor {
             setDirectoryPermissions(tempDir);
 
             String originalFilename = zipFile.getOriginalFilename();
-            String sanitizedFileName = sanitizeFileName(originalFilename != null ? originalFilename : "uploaded.zip");
+            String sanitizedFileName =
+                    sanitizeFileName(originalFilename != null ? originalFilename : "uploaded.zip");
             Path tempZipPath = tempDir.resolve(sanitizedFileName);
 
             Files.write(tempZipPath, zipFile.getBytes());

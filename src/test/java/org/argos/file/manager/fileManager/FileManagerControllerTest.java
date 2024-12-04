@@ -3,6 +3,7 @@ package org.argos.file.manager.fileManager;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import java.util.List;
 import java.util.Map;
 import org.argos.file.manager.controller.FileManagerController;
@@ -102,17 +103,19 @@ class FileManagerControllerTest {
      */
     @Test
     void testUploadZipFile() throws Exception {
-        MockMultipartFile mockFile = new MockMultipartFile("file", "test.zip", "application/zip", "dummy content".getBytes());
+        MockMultipartFile mockFile =
+                new MockMultipartFile(
+                        "file", "test.zip", "application/zip", "dummy content".getBytes());
         String generatedProjectId = "generated-project-id";
-        Map<String, String> uploadResult = Map.of(
-                "file1.txt", "Uploaded",
-                "file2.txt", "Uploaded"
-        );
+        Map<String, String> uploadResult =
+                Map.of(
+                        "file1.txt", "Uploaded",
+                        "file2.txt", "Uploaded");
 
-        when(s3FileService.uploadZipFile(mockFile)).thenReturn(Map.of("projectId", generatedProjectId, "uploadResults", uploadResult));
+        when(s3FileService.uploadZipFile(mockFile))
+                .thenReturn(Map.of("projectId", generatedProjectId, "uploadResults", uploadResult));
 
-        mockMvc.perform(multipart("/fileManager/uploadZip")
-                        .file(mockFile))
+        mockMvc.perform(multipart("/fileManager/uploadZip").file(mockFile))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.projectId").value(generatedProjectId))
                 .andExpect(jsonPath("$.uploadResults['file1.txt']").value("Uploaded"))

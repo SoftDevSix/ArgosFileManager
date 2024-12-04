@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 
 import java.nio.file.*;
 import java.util.*;
-
 import org.argos.file.manager.exceptions.BadRequestError;
 import org.argos.file.manager.repository.S3Repository;
 import org.argos.file.manager.utils.FileProcessor;
@@ -18,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
 
 class S3RepoPostMultiPartTest {
 
@@ -41,8 +39,10 @@ class S3RepoPostMultiPartTest {
         Path file2 = Files.createFile(tempDir.resolve("file2.txt"));
         List<Path> files = List.of(file1, file2);
 
-        try (MockedStatic<InputValidator> mockedInputValidator = Mockito.mockStatic(InputValidator.class);
-             MockedStatic<FileProcessor> mockedFileProcessor = Mockito.mockStatic(FileProcessor.class)) {
+        try (MockedStatic<InputValidator> mockedInputValidator =
+                        Mockito.mockStatic(InputValidator.class);
+                MockedStatic<FileProcessor> mockedFileProcessor =
+                        Mockito.mockStatic(FileProcessor.class)) {
 
             InputValidator inputValidatorMock = mock(InputValidator.class);
             FileProcessor fileProcessorMock = mock(FileProcessor.class);
@@ -57,7 +57,8 @@ class S3RepoPostMultiPartTest {
             when(fileProcessorMock.getFilesFromDirectory(tempDir)).thenReturn(files);
             doNothing().when(fileProcessorMock).validateFilesExist(files);
 
-            when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenReturn(null);
+            when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                    .thenReturn(null);
             Map<String, String> result = s3Repository.uploadMultiPartDirectory(projectId, zipFile);
 
             assertEquals(2, result.size());
@@ -72,13 +73,12 @@ class S3RepoPostMultiPartTest {
         }
     }
 
-
-
     @Test
     void uploadMultiPartDirectory_invalidZipFile_shouldThrowBadRequestError() {
         String projectId = "test-project";
 
-        try (MockedStatic<InputValidator> mockedInputValidator = Mockito.mockStatic(InputValidator.class)) {
+        try (MockedStatic<InputValidator> mockedInputValidator =
+                Mockito.mockStatic(InputValidator.class)) {
             InputValidator inputValidatorMock = mock(InputValidator.class);
 
             mockedInputValidator.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
@@ -86,9 +86,10 @@ class S3RepoPostMultiPartTest {
                     .when(inputValidatorMock)
                     .validateMultipartFile(zipFile);
 
-            BadRequestError exception = assertThrows(
-                    BadRequestError.class,
-                    () -> s3Repository.uploadMultiPartDirectory(projectId, zipFile));
+            BadRequestError exception =
+                    assertThrows(
+                            BadRequestError.class,
+                            () -> s3Repository.uploadMultiPartDirectory(projectId, zipFile));
 
             assertEquals("Invalid file", exception.getMessage());
         }

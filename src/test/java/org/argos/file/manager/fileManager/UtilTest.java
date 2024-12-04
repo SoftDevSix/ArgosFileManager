@@ -1,11 +1,11 @@
 package org.argos.file.manager.fileManager;
 
 import static org.junit.jupiter.api.Assertions.*;
+
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import org.argos.file.manager.exceptions.BadRequestError;
 import org.argos.file.manager.utils.FileProcessor;
 import org.argos.file.manager.utils.InputValidator;
@@ -26,10 +26,11 @@ class UtilTest {
     @Test
     void testValidateMultipartFileWithNull() {
         InputValidator inputValidatorAux = InputValidator.getInstance();
-        BadRequestError exception = assertThrows(BadRequestError.class, () -> inputValidatorAux.validateMultipartFile(null));
+        BadRequestError exception =
+                assertThrows(
+                        BadRequestError.class, () -> inputValidatorAux.validateMultipartFile(null));
         assertEquals("Uploaded ZIP file is null.", exception.getMessage());
     }
-
 
     @Test
     void testExtractZip() throws IOException {
@@ -138,9 +139,12 @@ class UtilTest {
         Path targetDir = Paths.get("/valid/target");
         ZipEntry invalidEntry = new ZipEntry("../outside/path/to/file.txt");
 
-        BadRequestError exception = assertThrows(BadRequestError.class, () -> {
-            fileProcessor.validateAndResolvePath(invalidEntry, targetDir);
-        });
+        BadRequestError exception =
+                assertThrows(
+                        BadRequestError.class,
+                        () -> {
+                            fileProcessor.validateAndResolvePath(invalidEntry, targetDir);
+                        });
 
         assertEquals("Invalid ZIP entry: ../outside/path/to/file.txt", exception.getMessage());
     }
@@ -153,9 +157,12 @@ class UtilTest {
 
         ZipEntry symlinkEntry = new ZipEntry("symlink.txt");
 
-        BadRequestError exception = assertThrows(BadRequestError.class, () -> {
-            fileProcessor.validateAndResolvePath(symlinkEntry, targetDir);
-        });
+        BadRequestError exception =
+                assertThrows(
+                        BadRequestError.class,
+                        () -> {
+                            fileProcessor.validateAndResolvePath(symlinkEntry, targetDir);
+                        });
 
         assertEquals("ZIP entry contains a symbolic link: symlink.txt", exception.getMessage());
 
