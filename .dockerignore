@@ -22,3 +22,4 @@ Dockerfile.dev
 docker-compose-dev.yml
 # Ignore environment variables
 .env
+.env-prod
