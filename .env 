@@ -1,0 +1,4 @@
+export DEV_AWS_REGION=us-east-2
+export DEV_AWS_ACCESS_KEY_ID=placeholder
+export DEV_AWS_SECRET_ACCESS_KEY=placeholder
+export DEV_AWS_BUCKET_NAME=group8-image-uploader-s3

@@ -1,0 +1,24 @@
+# Ignore build directories and files and dependencies
+.gradle/
+build/
+# Ignore specific local or IDE configuration files
+*.iml
+*.idea/
+*.vscode/
+*.classpath
+*.project
+*.settings/
+out/
+# Ignore log or temporary files
+*.log
+*.tmp
+# Ignore version control files
+.git/
+.gitignore
+.github/
+# Ignore docker files
+Dockerfile.dev
+.dockerignore
+docker-compose-dev.yml
+# Ignore environment variables
+.env
