@@ -94,17 +94,14 @@ POST /fileManager/upload?localDir=test/
 #### Request
 - **Method**: `POST`
 - **URL**: `/fileManager/uploadZip`
-
-#### Request Parameters
-- **projectId**: The unique identifier of the project.
-
+- 
 #### Request Body
 - **Content Type**: `multipart/form-data`
 - **Form Data**:
     - **zipFile**: The ZIP file to be uploaded.
 
 #### Response
-- **Status Code**: 204 OK
+- **Status Code**: 200 OK
 - **Body**: A JSON object containing the status of each file in the ZIP after extraction and upload.
 
 #### Example Response

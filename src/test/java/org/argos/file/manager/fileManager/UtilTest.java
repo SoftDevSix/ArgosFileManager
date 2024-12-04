@@ -157,7 +157,6 @@ class UtilTest {
 
         assertEquals("ZIP entry contains a symbolic link: symlink.txt", exception.getMessage());
 
-        // Clean up after test
         Files.delete(symlink);
         Files.delete(symlinkTarget);
         Files.delete(targetDir);
