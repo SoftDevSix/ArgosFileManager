@@ -9,27 +9,12 @@ services:
     container_name: argos_file_manager_dev
     ports:
       - "8080:8080"
-    depends_on:
-      - argos_file_manager_AWS_dev
     profiles:
       - development
-    env_file:
-      - .env
-
-  argos_file_manager_AWS_dev:
-    image: localstack/localstack:latest
-    container_name: argos_file_manager_AWS_dev
     environment:
       - AWS_REGION=${DEV_AWS_REGION}
       - AWS_ACCESS_KEY_ID=${DEV_AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${DEV_AWS_SECRET_ACCESS_KEY}
       - AWS_BUCKET_NAME=${DEV_AWS_BUCKET_NAME}
-    ports:
-      - "4566:4566"
-    profiles:
-      - development
     env_file:
       - .env
-
-volumes:
-  {}
