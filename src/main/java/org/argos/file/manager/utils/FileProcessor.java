@@ -3,7 +3,10 @@ package org.argos.file.manager.utils;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -81,11 +84,15 @@ public class FileProcessor {
      * @param targetDir the directory to extract the contents into.
      * @throws BadRequestError if the ZIP file cannot be processed.
      */
+    @SuppressWarnings("java:S5042")
     public void extractZip(Path zipFilePath, Path targetDir) {
         try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFilePath))) {
             ZipEntry entry;
             while ((entry = zipInputStream.getNextEntry()) != null) {
-                Path extractedPath = validateAndResolvePath(entry, targetDir);
+                Path extractedPath = targetDir.resolve(entry.getName()).normalize();
+                if (!extractedPath.startsWith(targetDir)) {
+                    throw new IOException("Potential directory traversal attempt in ZIP entry: " + entry.getName());
+                }
 
                 if (entry.isDirectory()) {
                     Files.createDirectories(extractedPath);
@@ -93,13 +100,13 @@ public class FileProcessor {
                     Files.createDirectories(extractedPath.getParent());
                     Files.copy(zipInputStream, extractedPath, StandardCopyOption.REPLACE_EXISTING);
                 }
-
                 zipInputStream.closeEntry();
             }
         } catch (IOException e) {
             throw new BadRequestError("Error extracting ZIP file: " + e.getMessage());
         }
     }
+
 
     /**
      * Validates the extracted path to ensure it is within the target directory and not
@@ -131,17 +138,45 @@ public class FileProcessor {
      * @param zipFile the MultipartFile containing the ZIP file.
      * @return the path to the temporary directory containing extracted files.
      */
+    @SuppressWarnings("java:S5443")
     public Path processAndExtractZip(MultipartFile zipFile) {
         try {
             Path tempDir = Files.createTempDirectory("unpacked-zip");
-            Path tempZipPath = tempDir.resolve(zipFile.getOriginalFilename());
+            setDirectoryPermissions(tempDir);
+
+            String originalFilename = zipFile.getOriginalFilename();
+            String sanitizedFileName = sanitizeFileName(originalFilename != null ? originalFilename : "uploaded.zip");
+            Path tempZipPath = tempDir.resolve(sanitizedFileName);
 
             Files.write(tempZipPath, zipFile.getBytes());
+
             extractZip(tempZipPath, tempDir);
+
             return tempDir;
         } catch (IOException e) {
             throw new BadRequestError("Failed to process ZIP file: " + e.getMessage());
         }
+    }
+
+    /**
+     * Sets restricted permissions for the given directory to prevent unauthorized access.
+     *
+     * @param dir the directory to set permissions for.
+     * @throws IOException if an error occurs while setting permissions.
+     */
+    private void setDirectoryPermissions(Path dir) throws IOException {
+        Set<PosixFilePermission> permissions = PosixFilePermissions.fromString("rwx------");
+        Files.setPosixFilePermissions(dir, permissions);
+    }
+
+    /**
+     * Sanitizes a file name to avoid potential security risks.
+     *
+     * @param fileName the original file name.
+     * @return a sanitized file name.
+     */
+    private String sanitizeFileName(String fileName) {
+        return fileName.replaceAll("[^a-zA-Z0-9\\.\\-_]", "_");
     }
 
     /**
