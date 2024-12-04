@@ -7,6 +7,7 @@ sonarqube = "5.1.0.4882"
 lombok = "1.18.36"
 junit-jupiter = "5.10.3"
 mockito = "5.6.0"
+webmvc = "2.6.0"
 
 [plugins]
 springboot = { id = "org.springframework.boot", version.ref = "springbootversions" }
@@ -23,3 +24,4 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 dotenv-java = { module = "io.github.cdimascio:dotenv-java", version = "3.0.0" }
 aws-s3 = { module = "software.amazon.awssdk:s3", version = "2.20.108" }
+springboot-webmvc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "webmvc" }

@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.springboot.starter.web)
     implementation(libs.aws.s3)
     implementation(libs.dotenv.java)
+    implementation(libs.springboot.webmvc)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     testImplementation(libs.springboot.starter.test) {
