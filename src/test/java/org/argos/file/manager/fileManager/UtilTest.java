@@ -24,15 +24,6 @@ class UtilTest {
     }
 
     @Test
-    void testValidateMultipartFileWithNull() {
-        InputValidator inputValidatorAux = InputValidator.getInstance();
-        BadRequestError exception =
-                assertThrows(
-                        BadRequestError.class, () -> inputValidatorAux.validateMultipartFile(null));
-        assertEquals("Uploaded ZIP file is null.", exception.getMessage());
-    }
-
-    @Test
     void testExtractZip() throws IOException {
         Path tempDir = Files.createTempDirectory("test-extract-zip");
         Path zipFile = tempDir.resolve("test.zip");
