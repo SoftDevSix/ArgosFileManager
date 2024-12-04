@@ -40,12 +40,13 @@ public class S3FileService {
     /**
      * Uploads a ZIP file, extracts its contents, and stores them in the S3 bucket.
      *
-     * @param file      the ZIP file to be uploaded and processed.
+     * @param file the ZIP file to be uploaded and processed.
      * @return a map containing the project ID and upload statuses.
      */
     public Map<String, Object> uploadZipFile(MultipartFile file) {
         String projectId = generateProjectId();
-        Map<String, String> uploadResults = storageRepository.uploadMultiPartDirectory(projectId, file);
+        Map<String, String> uploadResults =
+                storageRepository.uploadMultiPartDirectory(projectId, file);
 
         Map<String, Object> response = new HashMap<>();
         response.put("projectId", projectId);

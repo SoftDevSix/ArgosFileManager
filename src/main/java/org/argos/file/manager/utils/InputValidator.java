@@ -73,19 +73,15 @@ public class InputValidator {
         }
     }
 
-
     /**
      * Validates the provided {@link MultipartFile}.
-     *
-     * This method checks that the file is not null and not empty.
      *
      * @param file the {@link MultipartFile} to validate.
      * @throws BadRequestError if the file is null or empty.
      */
     public void validateMultipartFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new BadRequestError("Uploaded ZIP file is null or empty.");
+        if (file == null) {
+            throw new BadRequestError("Uploaded ZIP file is null.");
         }
     }
-
 }

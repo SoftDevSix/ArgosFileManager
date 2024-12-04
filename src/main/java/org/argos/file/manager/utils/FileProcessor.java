@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.stream.Stream;
 import org.argos.file.manager.exceptions.BadRequestError;
 import org.argos.file.manager.exceptions.NotFoundError;
 import org.springframework.web.multipart.MultipartFile;
@@ -85,10 +85,7 @@ public class FileProcessor {
         try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFilePath))) {
             ZipEntry entry;
             while ((entry = zipInputStream.getNextEntry()) != null) {
-                Path extractedPath = targetDir.resolve(entry.getName()).normalize();
-                if (!extractedPath.startsWith(targetDir)) {
-                    throw new BadRequestError("Invalid ZIP entry: " + entry.getName());
-                }
+                Path extractedPath = validateAndResolvePath(entry, targetDir);
 
                 if (entry.isDirectory()) {
                     Files.createDirectories(extractedPath);
@@ -96,12 +93,36 @@ public class FileProcessor {
                     Files.createDirectories(extractedPath.getParent());
                     Files.copy(zipInputStream, extractedPath, StandardCopyOption.REPLACE_EXISTING);
                 }
+
                 zipInputStream.closeEntry();
             }
         } catch (IOException e) {
             throw new BadRequestError("Error extracting ZIP file: " + e.getMessage());
         }
     }
+
+    /**
+     * Validates the extracted path to ensure it is within the target directory and not
+     * a directory traversal attack (e.g., `../../some/path`).
+     *
+     * @param entry the ZIP entry to validate.
+     * @param targetDir the target directory to extract files into.
+     * @return the validated path for the extracted file.
+     * @throws BadRequestError if the path is invalid.
+     */
+    public Path validateAndResolvePath(ZipEntry entry, Path targetDir) {
+        Path resolvedPath = targetDir.resolve(entry.getName());
+
+        if (!resolvedPath.normalize().startsWith(targetDir)) {
+            throw new BadRequestError("Invalid ZIP entry: " + entry.getName());
+        }
+        if (Files.isSymbolicLink(resolvedPath)) {
+            throw new BadRequestError("ZIP entry contains a symbolic link: " + entry.getName());
+        }
+
+        return resolvedPath;
+    }
+
 
     /**
      * Processes the given MultipartFile, creates a temporary directory,
@@ -137,7 +158,6 @@ public class FileProcessor {
             }
         }
     }
-
 
     /**
      * Deletes a directory and its contents recursively.

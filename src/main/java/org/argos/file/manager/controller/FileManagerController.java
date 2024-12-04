@@ -63,8 +63,7 @@ public class FileManagerController {
      */
     @PostMapping("/uploadZip")
     @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8081"})
-    public Map<String, Object> uploadZipFile(
-            @RequestParam MultipartFile file) {
+    public Map<String, Object> uploadZipFile(@RequestParam MultipartFile file) {
         return s3FileService.uploadZipFile(file);
     }
 }

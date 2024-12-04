@@ -1,6 +1,5 @@
 package org.argos.file.manager.repository;
 
-import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 import org.argos.file.manager.exceptions.BadRequestError;
@@ -34,7 +33,6 @@ public class S3Repository implements IStorageRepository {
         this.s3Client = s3Client;
         this.bucketName = System.getenv("AWS_BUCKET_NAME");
     }
-
 
     /**
      * Handles the upload of a ZIP file and processes its contents.

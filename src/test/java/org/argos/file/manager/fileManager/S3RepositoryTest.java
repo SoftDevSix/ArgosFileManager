@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -233,5 +234,16 @@ class S3RepositoryTest {
 
         assertTrue(exception.getMessage().contains("Error reading file content"));
         verify(s3Client, times(1)).getObjectAsBytes(any(GetObjectRequest.class));
+    }
+
+    @Test
+    void testUploadMultiPartDirectory_EmptyProjectId() {
+        String projectId = "";
+        MultipartFile zipFile = mock(MultipartFile.class);
+
+        BadRequestError exception = assertThrows(BadRequestError.class,
+                () -> s3Repository.uploadMultiPartDirectory(projectId, zipFile));
+
+        assertEquals("Project ID cannot be null or empty.", exception.getMessage());
     }
 }
