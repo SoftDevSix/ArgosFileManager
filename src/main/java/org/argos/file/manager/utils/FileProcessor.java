@@ -9,6 +9,7 @@ import java.util.zip.ZipInputStream;
 import java.util.stream.Stream;
 import org.argos.file.manager.exceptions.BadRequestError;
 import org.argos.file.manager.exceptions.NotFoundError;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Utility class for processing files. This class uses the Singleton pattern to ensure only
@@ -101,6 +102,42 @@ public class FileProcessor {
             throw new BadRequestError("Error extracting ZIP file: " + e.getMessage());
         }
     }
+
+    /**
+     * Processes the given MultipartFile, creates a temporary directory,
+     * and extracts the ZIP contents into it.
+     *
+     * @param zipFile the MultipartFile containing the ZIP file.
+     * @return the path to the temporary directory containing extracted files.
+     */
+    public Path processAndExtractZip(MultipartFile zipFile) {
+        try {
+            Path tempDir = Files.createTempDirectory("unpacked-zip");
+            Path tempZipPath = tempDir.resolve(zipFile.getOriginalFilename());
+
+            Files.write(tempZipPath, zipFile.getBytes());
+            extractZip(tempZipPath, tempDir);
+            return tempDir;
+        } catch (IOException e) {
+            throw new BadRequestError("Failed to process ZIP file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Safely deletes a temporary directory, logging any errors that occur.
+     *
+     * @param tempDir the directory to clean up.
+     */
+    public void cleanUpTempDirectory(Path tempDir) {
+        if (tempDir != null) {
+            try {
+                deleteDirectory(tempDir);
+            } catch (IOException e) {
+                throw new BadRequestError("Failed to clean up temporary files: " + e.getMessage());
+            }
+        }
+    }
+
 
     /**
      * Deletes a directory and its contents recursively.

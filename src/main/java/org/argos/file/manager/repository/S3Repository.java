@@ -36,40 +36,34 @@ public class S3Repository implements IStorageRepository {
     }
 
 
-
+    /**
+     * Handles the upload of a ZIP file and processes its contents.
+     *
+     * @param projectId the ID of the project to associate with the uploaded files.
+     * @param zipFile   the uploaded ZIP file as a {@link MultipartFile}.
+     * @return a map containing the upload results, with file paths as keys and
+     *         their statuses as values.
+     * @throws BadRequestError if the project ID or ZIP file is invalid, or if file
+     *                         processing fails.
+     */
     @Override
     public Map<String, String> uploadMultiPartDirectory(String projectId, MultipartFile zipFile) {
         InputValidator.getInstance().validateProjectId(projectId);
+        InputValidator.getInstance().validateMultipartFile(zipFile);
 
-        if (zipFile == null || zipFile.isEmpty()) {
-            throw new BadRequestError("Uploaded ZIP file is null or empty.");
-        }
+        Path tempDir = FileProcessor.getInstance().processAndExtractZip(zipFile);
 
-        Path tempDir;
         try {
-            tempDir = Files.createTempDirectory("unpacked-zip");
-            Path tempZipPath = tempDir.resolve(zipFile.getOriginalFilename());
+            List<Path> files = FileProcessor.getInstance().getFilesFromDirectory(tempDir);
+            FileProcessor.getInstance().validateFilesExist(files);
 
-            Files.write(tempZipPath, zipFile.getBytes());
-            FileProcessor.getInstance().extractZip(tempZipPath, tempDir);
-        } catch (IOException e) {
-            throw new BadRequestError("Failed to process ZIP file: " + e.getMessage());
+            Map<String, String> uploadResults = new HashMap<>();
+            uploadFiles(projectId, tempDir, files, uploadResults);
+            return uploadResults;
+        } finally {
+            FileProcessor.getInstance().cleanUpTempDirectory(tempDir);
         }
-
-        List<Path> files = FileProcessor.getInstance().getFilesFromDirectory(tempDir);
-        FileProcessor.getInstance().validateFilesExist(files);
-
-        Map<String, String> uploadResults = new HashMap<>();
-        uploadFiles(projectId, tempDir, files, uploadResults);
-        try {
-            FileProcessor.getInstance().deleteDirectory(tempDir);
-        } catch (IOException e) {
-            throw new BadRequestError("Failed to clean up temporary files: " + e.getMessage());
-        }
-
-        return uploadResults;
     }
-
 
     /**
      * Uploads all files from a local directory to the S3 bucket under a specific project.
