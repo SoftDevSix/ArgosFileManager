@@ -17,4 +17,4 @@ services:
       - AWS_SECRET_ACCESS_KEY=${PROD_AWS_SECRET_ACCESS_KEY}
       - AWS_BUCKET_NAME=${PROD_AWS_BUCKET_NAME}
     env_file:
-      - .env-prod
+      - .env
