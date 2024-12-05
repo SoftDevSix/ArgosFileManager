@@ -8,7 +8,7 @@ services:
     image: argos-file-manager-prod
     container_name: argos_file_manager_prod
     ports:
-      - "8282:8282"
+      - "8080:8080"
     profiles:
       - production
     environment:
