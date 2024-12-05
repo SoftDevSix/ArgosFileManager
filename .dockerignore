@@ -18,8 +18,10 @@ out/
 .github/
 # Ignore docker files
 Dockerfile.dev
+Dockerfile.prod
 .dockerignore
 docker-compose-dev.yml
+docker-compose-prod.yml
 # Ignore environment variables
 .env
 .env-prod
