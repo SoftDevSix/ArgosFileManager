@@ -1,0 +1,19 @@
+
+services:
+  argos_file_manager_prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: argos-file-manager-prod
+    container_name: argos_file_manager_prod
+    ports:
+      - "8080:8080"
+    profiles:
+      - production
+    environment:
+      - AWS_REGION=${PROD_AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${PROD_AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${PROD_AWS_SECRET_ACCESS_KEY}
+      - AWS_BUCKET_NAME=${PROD_AWS_BUCKET_NAME}
+    env_file:
+      - .env

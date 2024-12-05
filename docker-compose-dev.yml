@@ -1,0 +1,19 @@
+
+services:
+  argos_file_manager_dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: argos-file-manager-dev
+    container_name: argos_file_manager_dev
+    ports:
+      - "8080:8080"
+    profiles:
+      - development
+    environment:
+      - AWS_REGION=${DEV_AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${DEV_AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${DEV_AWS_SECRET_ACCESS_KEY}
+      - AWS_BUCKET_NAME=${DEV_AWS_BUCKET_NAME}
+    env_file:
+      - .env
