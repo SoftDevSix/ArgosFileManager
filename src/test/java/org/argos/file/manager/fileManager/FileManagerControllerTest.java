@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
@@ -95,5 +96,31 @@ class FileManagerControllerTest {
                                 .value("Uploaded"));
 
         verify(s3FileService, times(1)).uploadDirectory("test/");
+    }
+
+    /**
+     * Tests the endpoint for uploading a ZIP file.
+     */
+    @Test
+    void testUploadZipFile() throws Exception {
+        MockMultipartFile mockFile =
+                new MockMultipartFile(
+                        "file", "test.zip", "application/zip", "dummy content".getBytes());
+        String generatedProjectId = "generated-project-id";
+        Map<String, String> uploadResult =
+                Map.of(
+                        "file1.txt", "Uploaded",
+                        "file2.txt", "Uploaded");
+
+        when(s3FileService.uploadZipFile(mockFile))
+                .thenReturn(Map.of("projectId", generatedProjectId, "uploadResults", uploadResult));
+
+        mockMvc.perform(multipart("/fileManager/uploadZip").file(mockFile))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.projectId").value(generatedProjectId))
+                .andExpect(jsonPath("$.uploadResults['file1.txt']").value("Uploaded"))
+                .andExpect(jsonPath("$.uploadResults['file2.txt']").value("Uploaded"));
+
+        verify(s3FileService, times(1)).uploadZipFile(mockFile);
     }
 }

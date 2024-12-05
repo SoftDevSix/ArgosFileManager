@@ -2,6 +2,7 @@ package org.argos.file.manager.utils;
 
 import java.nio.file.*;
 import org.argos.file.manager.exceptions.BadRequestError;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Utility class for input validation using the Singleton pattern.
@@ -69,6 +70,18 @@ public class InputValidator {
     public void validateFilePath(String filePath) {
         if (filePath == null || filePath.isBlank()) {
             throw new BadRequestError("File path cannot be null or empty.");
+        }
+    }
+
+    /**
+     * Validates the provided {@link MultipartFile}.
+     *
+     * @param file the {@link MultipartFile} to validate.
+     * @throws BadRequestError if the file is null or empty.
+     */
+    public void validateMultipartFile(MultipartFile file) {
+        if (file == null) {
+            throw new BadRequestError("Uploaded ZIP file is null.");
         }
     }
 }

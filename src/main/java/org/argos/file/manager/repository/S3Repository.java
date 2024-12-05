@@ -8,6 +8,7 @@ import org.argos.file.manager.utils.FileProcessor;
 import org.argos.file.manager.utils.InputValidator;
 import org.argos.file.manager.utils.KeyGenerator;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
@@ -31,6 +32,35 @@ public class S3Repository implements IStorageRepository {
     public S3Repository(S3Client s3Client) {
         this.s3Client = s3Client;
         this.bucketName = System.getenv("AWS_BUCKET_NAME");
+    }
+
+    /**
+     * Handles the upload of a ZIP file and processes its contents.
+     *
+     * @param projectId the ID of the project to associate with the uploaded files.
+     * @param zipFile   the uploaded ZIP file as a {@link MultipartFile}.
+     * @return a map containing the upload results, with file paths as keys and
+     *         their statuses as values.
+     * @throws BadRequestError if the project ID or ZIP file is invalid, or if file
+     *                         processing fails.
+     */
+    @Override
+    public Map<String, String> uploadMultiPartDirectory(String projectId, MultipartFile zipFile) {
+        InputValidator.getInstance().validateProjectId(projectId);
+        InputValidator.getInstance().validateMultipartFile(zipFile);
+
+        Path tempDir = FileProcessor.getInstance().processAndExtractZip(zipFile);
+
+        try {
+            List<Path> files = FileProcessor.getInstance().getFilesFromDirectory(tempDir);
+            FileProcessor.getInstance().validateFilesExist(files);
+
+            Map<String, String> uploadResults = new HashMap<>();
+            uploadFiles(projectId, tempDir, files, uploadResults);
+            return uploadResults;
+        } finally {
+            FileProcessor.getInstance().cleanUpTempDirectory(tempDir);
+        }
     }
 
     /**
