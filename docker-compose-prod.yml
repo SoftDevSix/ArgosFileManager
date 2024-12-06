@@ -1,10 +1,9 @@
-
 services:
   argos_file_manager_prod:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    image: argos-file-manager-prod
+    image: argoscs/filemanager:latest
     container_name: argos_file_manager_prod
     ports:
       - "8080:8080"

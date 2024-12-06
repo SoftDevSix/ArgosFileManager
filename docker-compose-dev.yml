@@ -1,4 +1,3 @@
-
 services:
   argos_file_manager_dev:
     build:
